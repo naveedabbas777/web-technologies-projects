@@ -9,6 +9,9 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
 const { connectMongoDB } = require('./models/mongodb');
+const requestContextMiddleware = require('./middleware/requestContextMiddleware');
+const responseMiddleware = require('./middleware/responseMiddleware');
+const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware');
 
 if (config.NODE_ENV === 'production' && config.JWT_SECRET === 'your-secret-key-change-in-production') {
     throw new Error('JWT_SECRET must be set in production environment');
@@ -72,6 +75,9 @@ io.on('connection', (socket) => {
 });
 
 // Security Middleware
+app.use(requestContextMiddleware);
+app.use(responseMiddleware);
+
 app.use(helmet());
 app.use(cors({
     origin: corsOriginHandler,
@@ -109,9 +115,7 @@ app.use(express.static('public'));
 
 // Database Connection Test Route
 app.get('/api/health', (req, res) => {
-    res.status(200).json({
-        status: 'success',
-        message: 'Server is running',
+    res.success(200, 'Server is running', null, {
         timestamp: new Date(),
         database: {
             type: config.DATABASE_TYPE,
@@ -124,8 +128,7 @@ app.get('/api/health', (req, res) => {
 
 // Home Route
 app.get('/', (req, res) => {
-    res.json({
-        message: 'Welcome to Online Grocery Delivery Management System',
+    res.success(200, 'Welcome to Online Grocery Delivery Management System', null, {
         version: '1.0.0',
         endpoints: {
             health: '/api/health',
@@ -154,23 +157,9 @@ app.use('/api/contact', require('./routes/contact'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/categories', require('./routes/categories'));
 
-// 404 Handler
-app.use((req, res) => {
-    res.status(404).json({
-        status: 'error',
-        message: 'Route not found'
-    });
-});
-
-// Global Error Handler
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
-        status: 'error',
-        message: err.message || 'Internal Server Error',
-        ...(config.NODE_ENV === 'development' && { stack: err.stack })
-    });
-});
+// 404 and Global Error Handler
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Start Server with MongoDB Connection
 const PORT = config.PORT;

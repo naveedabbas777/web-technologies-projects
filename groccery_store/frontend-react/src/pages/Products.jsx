@@ -5,6 +5,7 @@ import Footer from '../components/Footer.jsx';
 import { apiService } from '../api/apiService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
+import { EmptyState, ErrorState, LoadingState } from '../components/ui/UIStates.jsx';
 
 function normalizeProduct(p) {
   const rawCategory = String(p.category || '').toLowerCase();
@@ -41,6 +42,8 @@ export default function Products() {
   const [priceBand, setPriceBand] = useState('all');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [loginNotice, setLoginNotice] = useState('');
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [productsError, setProductsError] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
   const loginNoticeRef = useRef(null);
@@ -55,16 +58,21 @@ export default function Products() {
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoadingProducts(true);
+    setProductsError('');
     apiService
       .getProducts(200, 0)
       .then((data) => {
         if (!isMounted) return;
         const products = (data.products || data.data || []).map(normalizeProduct);
         setAllProducts(products);
+        setIsLoadingProducts(false);
       })
-      .catch(() => {
+      .catch((error) => {
         if (!isMounted) return;
         setAllProducts([]);
+        setProductsError(error.message || 'Failed to load products.');
+        setIsLoadingProducts(false);
       });
 
     return () => {
@@ -256,10 +264,21 @@ export default function Products() {
                 </div>
               </div>
               <div id="productsContainer" className="row">
-                {filteredProducts.length === 0 ? (
+                {isLoadingProducts ? (
+                  <div className="col-12">
+                    <LoadingState title="Loading products" description="Fetching fresh items for your store view." />
+                  </div>
+                ) : productsError ? (
+                  <div className="col-12">
+                    <ErrorState title="Unable to load products" description={productsError} />
+                  </div>
+                ) : filteredProducts.length === 0 ? (
                   <div className="col-12 text-center py-5">
-                    <i className="fas fa-search fa-3x text-muted mb-3"></i>
-                    <p className="text-muted">No products found. Try a different search.</p>
+                    <EmptyState
+                      iconClass="fas fa-search"
+                      title="No matching products"
+                      description="Try changing your filters or search terms to find items."
+                    />
                   </div>
                 ) : (
                   filteredProducts.map((product) => (

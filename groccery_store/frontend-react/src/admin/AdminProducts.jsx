@@ -5,6 +5,7 @@ import AdminSidebar from '../components/AdminSidebar.jsx';
 import AdminTopbar from '../components/AdminTopbar.jsx';
 import { apiService } from '../api/apiService.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { EmptyState, ErrorState, LoadingState } from '../components/ui/UIStates.jsx';
 
 export default function AdminProducts({ SidebarComponent = AdminSidebar }) {
   const { user, showAlert } = useAuth();
@@ -31,6 +32,8 @@ export default function AdminProducts({ SidebarComponent = AdminSidebar }) {
   const [useCustomCategory, setUseCustomCategory] = useState(false);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState('');
   const [mode, setMode] = useState('add');
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,6 +52,8 @@ export default function AdminProducts({ SidebarComponent = AdminSidebar }) {
   };
 
   const loadProducts = async () => {
+    setProductsLoading(true);
+    setProductsError('');
     try {
       const params = new URLSearchParams();
       params.set('limit', '200');
@@ -79,7 +84,10 @@ export default function AdminProducts({ SidebarComponent = AdminSidebar }) {
       })));
     } catch (error) {
       setProducts([]);
+      setProductsError(error.message || 'Failed to load products.');
       showAlert(error.message || 'Failed to load products.', 'error', 'Products');
+    } finally {
+      setProductsLoading(false);
     }
   };
 
@@ -430,6 +438,13 @@ export default function AdminProducts({ SidebarComponent = AdminSidebar }) {
             </div>
 
             <div className="table-container product-table">
+              {productsLoading ? (
+                <LoadingState title="Loading products" description="Preparing inventory list for management." />
+              ) : productsError ? (
+                <ErrorState title="Unable to load inventory" description={productsError} />
+              ) : filtered.length === 0 ? (
+                <EmptyState title="No products found" description="Update search or category filters to see products." />
+              ) : (
               <table className="table table-hover mb-0 admin-data-table admin-products-table">
                 <thead className="table-light">
                   <tr>
@@ -507,6 +522,7 @@ export default function AdminProducts({ SidebarComponent = AdminSidebar }) {
                   ))}
                 </tbody>
               </table>
+              )}
             </div>
 
             {showModal && (

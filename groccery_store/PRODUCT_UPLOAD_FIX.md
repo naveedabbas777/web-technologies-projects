@@ -42,7 +42,7 @@ Your credentials are correct and already in `.env`:
 ```
 CLOUDINARY_CLOUD_NAME=dqsqbuoot
 CLOUDINARY_API_KEY=93185389358985
-CLOUDINARY_API_SECRET=_NdU5fERpLauBI-SqLpzEsgO56U
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
 ```
 
 ---

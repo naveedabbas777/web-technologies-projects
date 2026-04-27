@@ -9,13 +9,13 @@ Cloudinary is a cloud-based image management platform used for storing and servi
 
 **Cloud Name:** `dqsqbuoot`  
 **API Key:** `93185389358985`  
-**API Secret:** `_NdU5fERpLauBI-SqLpzEsgO56U`
+**API Secret:** `your-cloudinary-api-secret`
 
 These credentials are already configured in your `.env` file:
 ```
 CLOUDINARY_CLOUD_NAME=dqsqbuoot
 CLOUDINARY_API_KEY=93185389358985
-CLOUDINARY_API_SECRET=_NdU5fERpLauBI-SqLpzEsgO56U
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
 ```
 
 ---
@@ -60,7 +60,7 @@ const cloudinary = require('cloudinary').v2;
 cloudinary.config({
     cloud_name: 'dqsqbuoot',
     api_key: '93185389358985',
-    api_secret: '_NdU5fERpLauBI-SqLpzEsgO56U'
+   api_secret: 'your-cloudinary-api-secret'
 });
 cloudinary.api.resources({max_results: 1})
     .then(res => console.log('✅ Credentials valid'))
@@ -112,7 +112,7 @@ Make sure your `.env` file has these three lines:
 ```
 CLOUDINARY_CLOUD_NAME=dqsqbuoot
 CLOUDINARY_API_KEY=93185389358985
-CLOUDINARY_API_SECRET=_NdU5fERpLauBI-SqLpzEsgO56U
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
 ```
 
 ### Note About Security:

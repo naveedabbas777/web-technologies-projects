@@ -102,24 +102,18 @@ exports.getAllProducts = async (req, res) => {
 
         const total = await Product.countDocuments(query);
 
-        res.status(200).json({
-            status: 'success',
-            products,
-            data: products,
-            pagination: {
-                page: parsedPage,
-                limit: parsedLimit,
-                offset: skip,
-                total,
-                pages: Math.ceil(total / parsedLimit)
-            }
+        return res.paginated(200, products, {
+            page: parsedPage,
+            limit: parsedLimit,
+            offset: skip,
+            total,
+            pages: Math.ceil(total / parsedLimit)
+        }, 'products', {
+            data: products
         });
     } catch (error) {
         console.error('Get Products Error:', error);
-        res.status(500).json({
-            status: 'error',
-            message: error.message || 'Failed to get products'
-        });
+        return res.error(500, error.message || 'Failed to get products', 'PRODUCTS_FETCH_FAILED');
     }
 };
 
@@ -142,22 +136,13 @@ exports.getProduct = async (req, res) => {
 
         const product = await Product.findById(id);
         if (!product) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Product not found'
-            });
+            return res.error(404, 'Product not found', 'PRODUCT_NOT_FOUND');
         }
 
-        res.status(200).json({
-            status: 'success',
-            product
-        });
+        return res.success(200, null, null, { product });
     } catch (error) {
         console.error('Get Product Error:', error);
-        res.status(500).json({
-            status: 'error',
-            message: error.message || 'Failed to get product'
-        });
+        return res.error(500, error.message || 'Failed to get product', 'PRODUCT_FETCH_FAILED');
     }
 };
 
@@ -175,10 +160,7 @@ exports.createProduct = async (req, res) => {
 
         // Validation
         if (!name || !category || price === undefined) {
-            return res.status(400).json({
-                status: 'error',
-                message: 'Please provide name, category, and price'
-            });
+            return res.error(400, 'Please provide name, category, and price', 'VALIDATION_ERROR');
         }
 
         // Determine image_url: uploaded file takes precedence over body parameter
@@ -200,10 +182,7 @@ exports.createProduct = async (req, res) => {
             }
         } catch (uploadError) {
             console.error('❌ Image upload failed:', uploadError.message);
-            return res.status(400).json({
-                status: 'error',
-                message: `Image upload failed: ${uploadError.message}`
-            });
+            return res.error(400, `Image upload failed: ${uploadError.message}`, 'IMAGE_UPLOAD_FAILED');
         }
 
         const product = new Product({
@@ -223,18 +202,11 @@ exports.createProduct = async (req, res) => {
 
         emitProductsChanged(req, { productId: product._id, type: 'created' });
 
-        res.status(201).json({
-            status: 'success',
-            message: 'Product created successfully',
-            product
-        });
+        return res.success(201, 'Product created successfully', null, { product });
     } catch (error) {
         console.error('❌ Create Product Error:', error.message);
         console.error(error.stack);
-        res.status(500).json({
-            status: 'error',
-            message: error.message || 'Failed to create product'
-        });
+        return res.error(500, error.message || 'Failed to create product', 'PRODUCT_CREATE_FAILED');
     }
 };
 
@@ -250,10 +222,7 @@ exports.updateProduct = async (req, res) => {
 
         const product = await Product.findById(id);
         if (!product) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Product not found'
-            });
+            return res.error(404, 'Product not found', 'PRODUCT_NOT_FOUND');
         }
 
         // Update allowed fields
@@ -279,10 +248,7 @@ exports.updateProduct = async (req, res) => {
             }
         } catch (uploadError) {
             console.error('❌ Image upload failed:', uploadError.message);
-            return res.status(400).json({
-                status: 'error',
-                message: `Image upload failed: ${uploadError.message}`
-            });
+            return res.error(400, `Image upload failed: ${uploadError.message}`, 'IMAGE_UPLOAD_FAILED');
         }
         
         if (rating !== undefined) product.rating = rating;
@@ -297,18 +263,11 @@ exports.updateProduct = async (req, res) => {
 
         emitProductsChanged(req, { productId: product._id, type: 'updated' });
 
-        res.status(200).json({
-            status: 'success',
-            message: 'Product updated successfully',
-            product
-        });
+        return res.success(200, 'Product updated successfully', null, { product });
     } catch (error) {
         console.error('❌ Update Product Error:', error.message);
         console.error(error.stack);
-        res.status(500).json({
-            status: 'error',
-            message: error.message || 'Failed to update product'
-        });
+        return res.error(500, error.message || 'Failed to update product', 'PRODUCT_UPDATE_FAILED');
     }
 };
 
@@ -356,16 +315,10 @@ exports.getAlerts = async (req, res) => {
             };
         });
 
-        res.status(200).json({
-            status: 'success',
-            products: withExpiryInfo
-        });
+        return res.success(200, null, null, { products: withExpiryInfo });
     } catch (error) {
         console.error('Get Alerts Error:', error);
-        res.status(500).json({
-            status: 'error',
-            message: error.message || 'Failed to get alerts'
-        });
+        return res.error(500, error.message || 'Failed to get alerts', 'PRODUCT_ALERTS_FAILED');
     }
 };
 
@@ -381,25 +334,15 @@ exports.deleteProduct = async (req, res) => {
         );
 
         if (!product) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Product not found'
-            });
+            return res.error(404, 'Product not found', 'PRODUCT_NOT_FOUND');
         }
 
-        res.status(200).json({
-            status: 'success',
-            message: 'Product deleted successfully',
-            product
-        });
+        res.success(200, 'Product deleted successfully', null, { product });
 
         emitProductsChanged(req, { productId: product._id, type: 'deleted' });
     } catch (error) {
         console.error('Delete Product Error:', error);
-        res.status(500).json({
-            status: 'error',
-            message: error.message || 'Failed to delete product'
-        });
+        return res.error(500, error.message || 'Failed to delete product', 'PRODUCT_DELETE_FAILED');
     }
 };
 

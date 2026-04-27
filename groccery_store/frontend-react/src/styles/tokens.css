@@ -1,0 +1,86 @@
+:root {
+    --color-brand-700: #1f7a32;
+    --color-brand-600: #2f9e44;
+    --color-brand-500: #43b55b;
+    --color-accent-500: #ffd43b;
+    --color-info-500: #0ea5e9;
+    --color-danger-500: #ef4444;
+    --color-warning-500: #f59e0b;
+    --color-success-500: #22c55e;
+
+    --color-text-900: #102117;
+    --color-text-700: #334b37;
+    --color-text-500: #5f7a66;
+    --color-surface-0: #ffffff;
+    --color-surface-50: #f8fdf2;
+    --color-surface-100: #eef7dd;
+    --color-border-200: #d7e6be;
+
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --shadow-sm: 0 10px 24px rgba(16, 33, 23, 0.08);
+    --shadow-md: 0 16px 36px rgba(16, 33, 23, 0.12);
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+
+    --primary: var(--color-brand-600);
+    --primary-dark: var(--color-brand-700);
+    --secondary: var(--color-accent-500);
+    --dark: var(--color-text-900);
+    --light: var(--color-surface-50);
+    --white: var(--color-surface-0);
+}
+
+.ui-page-header {
+    background: linear-gradient(130deg, rgba(47, 158, 68, 0.14), rgba(255, 212, 59, 0.22));
+    border: 1px solid var(--color-border-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5) var(--space-6);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-6);
+}
+
+.ui-page-header h1,
+.ui-page-header h2 {
+    margin: 0;
+    color: var(--color-text-900);
+}
+
+.ui-page-header p {
+    margin: var(--space-2) 0 0;
+    color: var(--color-text-700);
+}
+
+.ui-state-card {
+    border: 1px solid var(--color-border-200);
+    background: var(--color-surface-0);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 44px 18px;
+    text-align: center;
+    color: var(--color-text-700);
+}
+
+.ui-state-card .icon {
+    font-size: 36px;
+    color: var(--color-brand-600);
+    margin-bottom: 10px;
+}
+
+.ui-state-card .title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--color-text-900);
+}
+
+.ui-state-card .desc {
+    margin: 0;
+    color: var(--color-text-500);
+}

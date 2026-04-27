@@ -244,11 +244,11 @@ Run the application and test the following:
 #### MongoDB Atlas Connection String Note
 
 If your password contains special characters, URL-encode them.
-Example password `Naveed@0788` must become `Naveed%400788`.
+Example password `your-password` becomes `your-password-encoded`.
 
 Example format:
 
-`mongodb+srv://username:Naveed%400788@cluster0.dgcnw4s.mongodb.net/grocery_delivery_db?retryWrites=true&w=majority&appName=Cluster0`
+`mongodb+srv://username:your-password-encoded@cluster0.dgcnw4s.mongodb.net/grocery_delivery_db?retryWrites=true&w=majority&appName=Cluster0`
 
 ## 📞 Support & Contact
 

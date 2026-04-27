@@ -8,10 +8,7 @@ exports.verifyToken = (req, res, next) => {
         const token = req.headers.authorization?.split(' ')[1];
 
         if (!token) {
-            return res.status(401).json({
-                status: 'error',
-                message: 'No token provided'
-            });
+            return res.error(401, 'No token provided', 'AUTH_MISSING_TOKEN');
         }
 
         const decoded = jwt.verify(token, config.JWT_SECRET);
@@ -19,25 +16,16 @@ exports.verifyToken = (req, res, next) => {
         next();
     } catch (error) {
         if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({
-                status: 'error',
-                message: 'Token expired'
-            });
+            return res.error(401, 'Token expired', 'AUTH_TOKEN_EXPIRED');
         }
-        res.status(401).json({
-            status: 'error',
-            message: 'Invalid token'
-        });
+        res.error(401, 'Invalid token', 'AUTH_INVALID_TOKEN');
     }
 };
 
 // Check if user is admin
 exports.isAdmin = (req, res, next) => {
     if (req.user?.role !== 'admin') {
-        return res.status(403).json({
-            status: 'error',
-            message: 'Forbidden - Admin access required'
-        });
+        return res.error(403, 'Forbidden - Admin access required', 'AUTH_FORBIDDEN');
     }
     next();
 };
@@ -45,10 +33,7 @@ exports.isAdmin = (req, res, next) => {
 // Check if user is delivery rider
 exports.isDeliveryRider = (req, res, next) => {
     if (req.user?.role !== 'delivery_rider') {
-        return res.status(403).json({
-            status: 'error',
-            message: 'Forbidden - Delivery Rider access required'
-        });
+        return res.error(403, 'Forbidden - Delivery Rider access required', 'AUTH_FORBIDDEN');
     }
     next();
 };
@@ -56,10 +41,7 @@ exports.isDeliveryRider = (req, res, next) => {
 // Check if user is staff
 exports.isStaff = (req, res, next) => {
     if (req.user?.role !== 'staff') {
-        return res.status(403).json({
-            status: 'error',
-            message: 'Forbidden - Staff access required'
-        });
+        return res.error(403, 'Forbidden - Staff access required', 'AUTH_FORBIDDEN');
     }
     next();
 };
@@ -67,10 +49,7 @@ exports.isStaff = (req, res, next) => {
 // Check if user is admin or delivery rider
 exports.isAdminOrRider = (req, res, next) => {
     if (!['admin', 'delivery_rider'].includes(req.user?.role)) {
-        return res.status(403).json({
-            status: 'error',
-            message: 'Forbidden - Admin or Delivery Rider access required'
-        });
+        return res.error(403, 'Forbidden - Admin or Delivery Rider access required', 'AUTH_FORBIDDEN');
     }
     next();
 };
@@ -78,10 +57,7 @@ exports.isAdminOrRider = (req, res, next) => {
 // Check if user is admin or staff
 exports.isAdminOrStaff = (req, res, next) => {
     if (!['admin', 'staff'].includes(req.user?.role)) {
-        return res.status(403).json({
-            status: 'error',
-            message: 'Forbidden - Admin or Staff access required'
-        });
+        return res.error(403, 'Forbidden - Admin or Staff access required', 'AUTH_FORBIDDEN');
     }
     next();
 };
@@ -89,10 +65,7 @@ exports.isAdminOrStaff = (req, res, next) => {
 // Check if user is admin, staff, or delivery rider
 exports.isAdminOrStaffOrRider = (req, res, next) => {
     if (!['admin', 'staff', 'delivery_rider'].includes(req.user?.role)) {
-        return res.status(403).json({
-            status: 'error',
-            message: 'Forbidden - Admin, Staff, or Delivery Rider access required'
-        });
+        return res.error(403, 'Forbidden - Admin, Staff, or Delivery Rider access required', 'AUTH_FORBIDDEN');
     }
     next();
 };
@@ -105,10 +78,7 @@ exports.isOwnerOrAdmin = (fieldName = 'userId') => {
         const isAdmin = req.user?.role === 'admin';
 
         if (currentUserId !== targetUserId && !isAdmin) {
-            return res.status(403).json({
-                status: 'error',
-                message: 'Forbidden'
-            });
+            return res.error(403, 'Forbidden', 'AUTH_FORBIDDEN');
         }
         next();
     };
