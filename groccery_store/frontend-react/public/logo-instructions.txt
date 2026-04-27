@@ -1,0 +1,12 @@
+Place your grocery logo image here as:
+
+logo.png
+
+Path expected by the app:
+/public/logo.png
+
+Used in:
+- Navbar
+- Login page
+- Footer
+- Browser tab favicon
