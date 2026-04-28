@@ -1,281 +1,257 @@
 # Fresh Grocery - Online Delivery Management System
-# Complete Setup Guide
 
-## 📋 Project Overview
-This is a full-stack web application for online grocery shopping and delivery management built with modern technologies.
+Full-stack grocery shopping and delivery platform built with React, Vite, Node.js, Express, MongoDB, Socket.IO, and optional Cloudinary/Redis integrations.
 
-## 🏗️ Project Structure
+## Overview
 
-```
-mooen/
-├── frontend-react/           # Frontend app (React + Vite)
-│   ├── src/                  # React source code
-│   ├── index.html            # Vite HTML entry
-│   ├── vite.config.js        # Vite config
-│   └── package.json          # Frontend dependencies
-│
-├── backend/                 # Backend server (Node.js)
+This repository contains a customer-facing grocery storefront, admin and staff dashboards, a realtime messaging layer, and a production deployment blueprint for Render.
+
+The codebase is MongoDB-first. Some older markdown files in the repo still mention MySQL and SQL schema files; the runtime code uses Mongoose models and MongoDB services instead.
+
+## Tech Stack
+
+- Frontend: React 18, Vite, React Router, Chart.js, Socket.IO client
+- Backend: Node.js, Express, Socket.IO, Mongoose, JWT, bcryptjs, multer
+- Optional services: Cloudinary for image uploads, Redis for caching, Nodemailer for email, Stripe/payment hooks
+- Deployment: Render Blueprint via `render.yaml`
+
+## Key Features
+
+### Customer
+
+- Browse products with search and category filtering
+- Manage cart and checkout flow
+- Place orders and view order history
+- Receive realtime updates through Socket.IO
+
+### Admin
+
+- Product CRUD with image upload support
+- Order management and status updates
+- Customer management
+- Dashboard charts and operational views
+
+### Staff and Rider
+
+- Role-based dashboards and message inboxes
+- Delivery and order workflow support
+
+## Repository Structure
+
+```text
+groccery_store/
+├── backend/
+│   ├── server.js
+│   ├── config.js
+│   ├── controllers/
+│   ├── middleware/
 │   ├── models/
-│   │   ├── db.js           # Database connection
-│   │   ├── User.js         # User model
-│   │   ├── Product.js      # Product model
-│   │   └── Order.js        # Order model
 │   ├── routes/
-│   │   ├── auth.js         # Authentication routes
-│   │   ├── products.js     # Products API routes
-│   │   └── orders.js       # Orders API routes
-│   ├── config.js           # Configuration file
-│   ├── server.js           # Main server file
-│   ├── package.json        # Dependencies
-│   └── .env.example        # Environment variables template
-│
-├── database/               # Database files
-│   └── schema.sql          # MySQL database schema
-│
-└── README.md              # This file
+│   └── utils/
+├── frontend-react/
+│   ├── src/
+│   ├── vite.config.js
+│   └── package.json
+├── render.yaml
+└── docs (*.md)
 ```
 
-## 🚀 Installation & Setup
+## Prerequisites
 
-### Prerequisites
-- Node.js (v14+)
-- MySQL (v5.7+)
-- npm or yarn
+- Node.js 18+ recommended
+- npm
+- MongoDB Atlas or another reachable MongoDB instance
+- Optional: Cloudinary account for uploads
 
-### Backend Setup
+## Local Setup
 
-1. **Navigate to backend directory:**
-   ```bash
-   cd mooen/backend
-   ```
+### 1. Clone the repo
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+```bash
+git clone <your-github-repo-url>
+cd groccery_store
+```
 
-3. **Create environment file:**
-   ```bash
-   cp .env.example .env
-   ```
+### 2. Configure the backend
 
-4. **Configure .env file with your database credentials:**
-   ```
-   DB_HOST=localhost
-   DB_USER=root
-   DB_PASSWORD=yourpassword
-   DB_NAME=grocery_delivery_db
-   PORT=5000
-   ```
+Create `backend/.env` and set at least:
 
-5. **Create database and import schema:**
-   ```bash
-   mysql -u root -p
-   CREATE DATABASE grocery_delivery_db;
-   USE grocery_delivery_db;
-   SOURCE ../database/schema.sql;
-   ```
+```env
+NODE_ENV=development
+PORT=5000
+DATABASE_TYPE=mongodb
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<db>?retryWrites=true&w=majority
+JWT_SECRET=replace-with-a-long-random-secret
+JWT_EXPIRY=7d
+FRONTEND_URL=http://localhost:5173
+CORS_ORIGINS=http://localhost:5173
+```
 
-6. **Start the server:**
-   ```bash
-   npm run dev
-   ```
+Optional backend settings:
 
-### Frontend Setup
+```env
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+REDIS_ENABLED=false
+REDIS_URL=
+```
 
-1. **Navigate to React frontend:**
-   ```bash
-   cd frontend-react
-   ```
+### 3. Install and run the backend
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-3. **Start the React dev server:**
-   ```bash
-   npm run dev
-   ```
+The server should start on `http://localhost:5000`.
 
-4. **Open the URL shown in the terminal** (typically `http://localhost:5173`)
+### 4. Install and run the frontend
 
-## 📱 Features
+```bash
+cd ../frontend-react
+npm install
+npm run dev
+```
 
-### Customer Features
-- ✅ User Registration & Login
-- ✅ Browse Products by Category
-- ✅ Search Products
-- ✅ Add Products to Cart
-- ✅ View Cart & Manage Items
-- ✅ Checkout & Order Placement
-- ✅ View Order History
-- ✅ Track Order Status
-- ✅ Responsive Design
+The frontend should open on the Vite dev URL, usually `http://localhost:5173`.
 
-### Admin Features
-- ✅ Admin Dashboard
-- ✅ Product Management (Add/Edit/Delete)
-- ✅ Order Management
-- ✅ Customer Management
-- ✅ Delivery Tracking
-- ✅ Revenue Reports
+## Production Build
 
-### Delivery Rider Features
-- View Assigned Orders
-- Update Delivery Status
-- Access Delivery Map
+### Frontend
 
-## 🎨 UI/UX Highlights
+```bash
+cd frontend-react
+npm install
+npm run build
+```
 
-- **Modern Design:** Beautiful gradient backgrounds and smooth animations
-- **Responsive Layout:** Works perfectly on mobile, tablet, and desktop
-- **Fast Loading:** Optimized images and lazy loading
-- **Intuitive Navigation:** Easy to use interface
-- **Accessibility:** Semantic HTML and ARIA labels
-- **Dark Mode Ready:** Can be easily extended
+### Backend
 
-## 🔐 Security Features
+```bash
+cd backend
+npm install
+npm start
+```
 
-- JWT Token Authentication
-- Password Hashing with Bcrypt
-- CORS Protection
-- Rate Limiting
-- Input Validation & Sanitization
-- SQL Injection Prevention
+## Render Deployment
 
-## 📊 Database Schema
+This repo already includes a Render Blueprint in `render.yaml`.
 
-### Tables
-- **users** - Customer, Admin, and Delivery Rider accounts
-- **products** - Grocery items catalog
-- **cart** - Shopping cart items
-- **orders** - Customer orders
-- **order_items** - Items in each order
-- **payments** - Payment transactions
-- **delivery** - Delivery assignments
-- **categories** - Product categories
+### Services Render creates
 
-## 🔌 API Endpoints
+- Web service: `fresh-grocery-backend`
+- Static site: `fresh-grocery-frontend`
+
+### Deploy steps
+
+1. Push the repo to GitHub.
+2. In Render, create a new Blueprint from the repository.
+3. Let Render read `render.yaml` and create both services.
+4. Add backend environment variables in Render.
+5. Set `VITE_API_BASE` on the frontend static site.
+6. Trigger a deploy and check the logs.
+
+### Backend environment variables for Render
+
+Set these on the backend service:
+
+- `MONGODB_URI`
+- `JWT_SECRET`
+- `FRONTEND_URL`
+- `CORS_ORIGINS`
+- `CLOUDINARY_CLOUD_NAME` if you use image uploads
+- `CLOUDINARY_API_KEY` if you use image uploads
+- `CLOUDINARY_API_SECRET` if you use image uploads
+- `REDIS_ENABLED` and `REDIS_URL` if you use Redis
+
+### Frontend environment variables for Render
+
+- `VITE_API_BASE=https://<your-backend-service>.onrender.com/api`
+
+## Useful Scripts
+
+### Backend
+
+```bash
+npm run dev
+npm start
+npm test
+```
+
+### Frontend
+
+```bash
+npm run dev
+npm run build
+npm run preview
+```
+
+## API Overview
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
 
 ### Products
-- `GET /api/products` - Get all products
-- `GET /api/products/:id` - Get product details
-- `GET /api/products/category/:category` - Get products by category
-- `POST /api/products` - Create product (Admin)
-- `PUT /api/products/:id` - Update product (Admin)
-- `DELETE /api/products/:id` - Delete product (Admin)
+
+- `GET /api/products`
+- `GET /api/products/:id`
+- `POST /api/products`
+- `PUT /api/products/:id`
+- `DELETE /api/products/:id`
 
 ### Orders
-- `POST /api/orders` - Create order
-- `GET /api/orders/my-orders` - Get user's orders
-- `GET /api/orders/:id` - Get order details
-- `PUT /api/orders/:id` - Update order status (Admin)
 
-## 🎯 Performance Optimization
+- `POST /api/orders`
+- `GET /api/orders`
+- `GET /api/orders/my-orders`
+- `PUT /api/orders/:id`
 
-- ✅ Lazy Loading for Images
-- ✅ Minimized CSS & JavaScript
-- ✅ Database Indexing
-- ✅ Connection Pooling
-- ✅ Caching Strategies
-- ✅ Compressed Assets
+### Messages and Support
 
-## 📱 Browser Support
+- Message inbox, threaded conversations, and reply endpoints are exposed through the frontend service layer and backed by the backend message controllers.
 
-- Chrome (Latest)
-- Firefox (Latest)
-- Safari (Latest)
-- Edge (Latest)
+## Important Notes
 
-## 🐛 Testing
+- The backend uses MongoDB, not MySQL.
+- `render.yaml` is the source of truth for Render deployment.
+- If product image uploads fail, check Cloudinary env vars first.
+- If frontend API calls fail in production, confirm `VITE_API_BASE` points to the deployed backend URL with `/api`.
+- CORS issues usually mean `CORS_ORIGINS` does not match the deployed frontend hostname exactly.
 
-Run the application and test the following:
+## Troubleshooting
 
-1. **User Registration** - Create new account
-2. **Login** - Verify authentication
-3. **Browse Products** - Check product display
-4. **Search Functionality** - Test search
-5. **Cart Operations** - Add/Remove items
-6. **Checkout Process** - Complete order
-7. **Admin Panel** - Test admin features
+- Backend fails to start: verify `MONGODB_URI` and `JWT_SECRET`.
+- Frontend shows blank data: verify `VITE_API_BASE` and backend health.
+- Upload errors: verify Cloudinary credentials or switch to non-upload product creation.
+- Socket realtime not working: verify backend and frontend are both running on the deployed URLs.
 
-## 📝 Default Accounts
+## Project Information
 
-### Admin Account
-- Email: `admin@freshgrocery.com`
-- Password: `admin123`
+- Author: M. Mueen
+- License: ISC
+- Version: 1.0.0
 
-### Test Customer Account
-- Email: `customer@example.com`
-- Password: `password123`
+## Source Docs Consolidated
 
-## 🚀 Deployment
+This README consolidates the useful parts of:
 
-### Frontend Deployment
-- Use Vercel, Netlify, or GitHub Pages
-- Build optimized production version
+- `PROJECT_SUMMARY.md`
+- `PROJECT_COMPLETION.md`
+- `QUICKSTART.md`
+- `INSTALLATION.md`
+- `RENDER_DEPLOYMENT.md`
+- `BACKEND_COMPLETE.md`
+- `INTEGRATION_GUIDE.md`
+- `PRODUCT_UPLOAD_FIX.md`
+- `MONGODB_ATLAS_SETUP.md`
+- `MONGODB_ATLAS_QUICK_START.md`
+- `RUNNING.md`
 
-### Backend Deployment
-- Use Heroku, AWS, or DigitalOcean
-- Set up environment variables
-- Configure database connection
+## Last Updated
 
-### Deploy On Render (Backend + Frontend)
-
-1. Push this repository to GitHub.
-2. In Render, create a Blueprint and select this repo.
-3. Render will detect `render.yaml` and create:
-   - Web service: `fresh-grocery-backend`
-   - Static site: `fresh-grocery-frontend`
-4. Set backend environment variables in Render:
-   - `MONGODB_URI`
-   - `JWT_SECRET`
-   - `FRONTEND_URL` (your Render frontend URL)
-   - `CORS_ORIGINS` (your Render frontend URL, comma-separated if multiple)
-5. Set frontend environment variable:
-   - `VITE_API_BASE` = `https://<your-backend-service>.onrender.com/api`
-
-#### MongoDB Atlas Connection String Note
-
-If your password contains special characters, URL-encode them.
-Example password `your-password` becomes `your-password-encoded`.
-
-Example format:
-
-`mongodb+srv://username:your-password-encoded@cluster0.dgcnw4s.mongodb.net/grocery_delivery_db?retryWrites=true&w=majority&appName=Cluster0`
-
-## 📞 Support & Contact
-
-- Email: info@freshgrocery.com
-- Phone: +92-300-1234567
-- Website: www.freshgrocery.com
-
-## 👨‍💻 Developer
-
-**M. Mueen (FA23-BSE-028)**
-- Course: Software Construction & Development
-- Instructor: Sania Iram
-- University: FAST-NUCES
-
-## 📄 License
-
-This project is licensed under the ISC License.
-
-## 🙏 Acknowledgments
-
-- Bootstrap 5 for responsive design
-- FontAwesome for icons
-- Express.js for backend framework
-- MySQL for database
-- JWT for authentication
-
----
-
-**Last Updated:** March 2026
-**Version:** 1.0.0
+April 2026
