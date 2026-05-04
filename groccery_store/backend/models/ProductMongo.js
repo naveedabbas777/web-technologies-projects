@@ -70,6 +70,10 @@ const productSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    featured: {
+        type: Boolean,
+        default: false
+    },
     created_at: {
         type: Date,
         default: Date.now

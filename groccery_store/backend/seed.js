@@ -176,6 +176,11 @@ const sampleProducts = [
     }
 ];
 
+// Mark a few featured products for homepage
+sampleProducts[0].featured = true; // Fresh Apples
+sampleProducts[2].featured = true; // Fresh Milk
+sampleProducts[5].featured = true; // Tomatoes
+
 async function seedDatabase() {
     try {
         log.info('Starting database seed...');

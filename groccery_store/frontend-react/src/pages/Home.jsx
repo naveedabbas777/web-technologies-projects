@@ -13,6 +13,7 @@ function normalizeProduct(p) {
     category: String(p.category || '').toLowerCase(),
     price: p.price,
     description: p.description || '',
+    image_url: p.image_url || p.image || null,
     stock: p.stock_quantity ?? p.stock ?? 0,
     rating: p.rating ?? 4.5,
     reviewsCount: p.reviews_count ?? 0
@@ -28,13 +29,18 @@ export default function Home() {
   const navigate = useNavigate();
   const loginNoticeRef = useRef(null);
 
+  const [categories, setCategories] = useState([]);
+  const [categorySamples, setCategorySamples] = useState([]);
+
   useEffect(() => {
     let isMounted = true;
+
+    // Fetch featured products from backend (use featured flag)
     apiService
-      .getProducts(100, 0)
+      .get(`/products?limit=8&featured=true`)
       .then((data) => {
         if (!isMounted) return;
-        const items = (data.products || data.data || []).map(normalizeProduct);
+        const items = (data.products || data.data || data.data?.products || []).map(normalizeProduct);
         setProducts(items);
       })
       .catch(() => {
@@ -42,12 +48,30 @@ export default function Home() {
         setError('Unable to load featured products.');
       });
 
+    // Fetch categories and a sample product image for each
+    apiService.getCategories().then((resp) => {
+      const cats = resp?.data?.categories || resp?.categories || [];
+      if (!isMounted) return;
+      setCategories(cats);
+
+      // For each category fetch one product to use its image
+      Promise.all(cats.slice(0, 6).map((cat) =>
+        apiService.get(`/products/category/${encodeURIComponent(cat)}?limit=1`).then((r) => {
+          const items = (r.products || r.data || r.data?.products || []);
+          return { category: cat, sample: items[0] || null };
+        }).catch(() => ({ category: cat, sample: null }))
+      )).then((samples) => {
+        if (!isMounted) return;
+        setCategorySamples(samples);
+      }).catch(() => {});
+    }).catch(() => {});
+
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const featured = products.slice(0, 4);
+  const featured = products.slice(0, 8);
 
   useEffect(() => {
     if (loginNotice && loginNoticeRef.current) {
@@ -181,36 +205,60 @@ export default function Home() {
         <div className="container">
           <h2 className="text-center mb-5 fw-bold">Shop by Category</h2>
           <div className="row">
-            <div className="col-md-4 mb-4">
-              <div className="category-card">
-                <i className="fas fa-apple-alt fa-5x mb-3"></i>
-                <h4>Fresh Fruits</h4>
-                <p>Organic and fresh fruits delivered daily</p>
-                <Link to="/products?category=fruits" className="btn btn-sm btn-shop-category">
-                  Shop Now
-                </Link>
+            {categorySamples.length === 0 && (
+              <>
+                <div className="col-md-4 mb-4">
+                  <div className="category-card">
+                    <i className="fas fa-apple-alt fa-5x mb-3"></i>
+                    <h4>Fresh Fruits</h4>
+                    <p>Organic and fresh fruits delivered daily</p>
+                    <Link to="/products?category=fruits" className="btn btn-sm btn-shop-category">Shop Now</Link>
+                  </div>
+                </div>
+                <div className="col-md-4 mb-4">
+                  <div className="category-card">
+                    <i className="fas fa-carrot fa-5x mb-3"></i>
+                    <h4>Fresh Vegetables</h4>
+                    <p>Premium quality vegetables from local farms</p>
+                    <Link to="/products?category=vegetables" className="btn btn-sm btn-shop-category">Shop Now</Link>
+                  </div>
+                </div>
+                <div className="col-md-4 mb-4">
+                  <div className="category-card">
+                    <i className="fas fa-drumstick-bite fa-5x mb-3"></i>
+                    <h4>Meat and Dairy</h4>
+                    <p>Fresh meat, dairy, and protein products</p>
+                    <Link to="/products?category=meat-dairy" className="btn btn-sm btn-shop-category">Shop Now</Link>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {categorySamples.map((c) => (
+              <div className="col-md-4 mb-4" key={c.category}>
+                <div className="category-card category-card-with-image">
+                  {c.sample && c.sample.image_url ? (
+                    <img src={c.sample.image_url} alt={c.category} className="category-sample-image" />
+                  ) : (
+                    <i className="fas fa-box-open fa-5x mb-3"></i>
+                  )}
+                  <h4 style={{ textTransform: 'capitalize' }}>{c.category.replace(/[-]/g, ' ')}</h4>
+                  <p>Shop the best items in {c.category.replace(/[-]/g, ' ')}</p>
+                  {c.sample ? (
+                    <div className="mt-2">
+                      <small className="d-block text-muted">Featured sample:</small>
+                      <strong className="d-block">{c.sample.name}</strong>
+                      <div className="d-flex align-items-center justify-content-between mt-2">
+                        <Link to={`/products/${c.sample._id || c.sample.id}`} className="btn btn-sm btn-outline-primary">View Product</Link>
+                        <Link to={`/products?category=${encodeURIComponent(c.category)}`} className="btn btn-sm btn-shop-category">Shop Category</Link>
+                      </div>
+                    </div>
+                  ) : (
+                    <Link to={`/products?category=${encodeURIComponent(c.category)}`} className="btn btn-sm btn-shop-category">Shop Now</Link>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="col-md-4 mb-4">
-              <div className="category-card">
-                <i className="fas fa-carrot fa-5x mb-3"></i>
-                <h4>Fresh Vegetables</h4>
-                <p>Premium quality vegetables from local farms</p>
-                <Link to="/products?category=vegetables" className="btn btn-sm btn-shop-category">
-                  Shop Now
-                </Link>
-              </div>
-            </div>
-            <div className="col-md-4 mb-4">
-              <div className="category-card">
-                <i className="fas fa-drumstick-bite fa-5x mb-3"></i>
-                <h4>Meat and Dairy</h4>
-                <p>Fresh meat, dairy, and protein products</p>
-                <Link to="/products?category=meat-dairy" className="btn btn-sm btn-shop-category">
-                  Shop Now
-                </Link>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -224,7 +272,11 @@ export default function Home() {
               <div className="col-6 col-md-6 col-lg-3 col-xl-2 mb-3" key={product.id}>
                 <div className="product-card product-card-compact product-card-premium">
                   <div className="product-image">
-                    <i className={getProductIconClass(product.category)}></i>
+                    {product.image_url ? (
+                      <img src={product.image_url} alt={product.name} />
+                    ) : (
+                      <i className={getProductIconClass(product.category)}></i>
+                    )}
                     <span className="product-badge">Featured</span>
                   </div>
                   <div className="product-info">

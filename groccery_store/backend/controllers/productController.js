@@ -29,6 +29,7 @@ const sanitizeProductInput = (body = {}) => {
     if (payload.rating !== undefined) payload.rating = parsePositiveNumber(payload.rating, 4.5);
     if (payload.expiry_date !== undefined) payload.expiry_date = payload.expiry_date ? new Date(payload.expiry_date) : null;
     if (payload.is_active !== undefined) payload.is_active = payload.is_active === true || payload.is_active === 'true';
+    if (payload.featured !== undefined) payload.featured = payload.featured === true || payload.featured === 'true';
     return payload;
 };
 
@@ -86,6 +87,11 @@ exports.getAllProducts = async (req, res) => {
                 { description: { $regex: search, $options: 'i' } }
             ];
         }
+
+            // Filter by featured flag
+            if (req.query.featured === 'true' || req.query.featured === true) {
+                query.featured = true;
+            }
 
         // Filter by price range
         if (minPrice || maxPrice) {
@@ -174,7 +180,7 @@ exports.getProduct = async (req, res) => {
 // Create product (admin only)
 exports.createProduct = async (req, res) => {
     try {
-        const { name, description, category, price, stock_quantity, image_url, rating, expiry_date } = sanitizeProductInput(req.body);
+        const { name, description, category, price, stock_quantity, image_url, rating, expiry_date, featured } = sanitizeProductInput(req.body);
 
         console.log('📝 Create Product Request:');
         console.log('  Name:', name);
@@ -223,6 +229,7 @@ exports.createProduct = async (req, res) => {
             image_url: finalImageUrl,
             rating: rating ?? 4.5,
             expiry_date,
+            featured: featured ?? false,
             is_active: true
         });
 
