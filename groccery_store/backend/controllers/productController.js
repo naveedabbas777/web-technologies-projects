@@ -396,7 +396,7 @@ exports.getCategories = async (req, res) => {
 
         categories.sort();
 
-        return res.success(200, 'Categories fetched successfully', null, { categories });
+        return res.success(200, 'Categories fetched successfully', { categories });
     } catch (error) {
         console.error('Get Categories Error:', error);
         return res.error(500, error.message || 'Failed to get categories', 'CATEGORIES_FETCH_FAILED');

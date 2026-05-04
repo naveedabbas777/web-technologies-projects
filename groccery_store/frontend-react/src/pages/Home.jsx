@@ -32,6 +32,20 @@ export default function Home() {
   const [categories, setCategories] = useState([]);
   const [categorySamples, setCategorySamples] = useState([]);
 
+  const extractCategories = (resp) => {
+    if (Array.isArray(resp?.data?.categories)) return resp.data.categories;
+    if (Array.isArray(resp?.meta?.categories)) return resp.meta.categories;
+    if (Array.isArray(resp?.categories)) return resp.categories;
+    return [];
+  };
+
+  const extractProducts = (resp) => {
+    if (Array.isArray(resp?.products)) return resp.products;
+    if (Array.isArray(resp?.data?.products)) return resp.data.products;
+    if (Array.isArray(resp?.data)) return resp.data;
+    return [];
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -40,7 +54,7 @@ export default function Home() {
       .get(`/products?limit=8&featured=true`)
       .then((data) => {
         if (!isMounted) return;
-        const items = (data.products || data.data || data.data?.products || []).map(normalizeProduct);
+        const items = extractProducts(data).map(normalizeProduct);
         setProducts(items);
       })
       .catch(() => {
@@ -50,14 +64,14 @@ export default function Home() {
 
     // Fetch categories and a sample product image for each
     apiService.getCategories().then((resp) => {
-      const cats = resp?.data?.categories || resp?.categories || [];
+      const cats = extractCategories(resp);
       if (!isMounted) return;
       setCategories(cats);
 
       // For each category fetch one product to use its image
       Promise.all(cats.slice(0, 6).map((cat) =>
         apiService.get(`/products/category/${encodeURIComponent(cat)}?limit=1`).then((r) => {
-          const items = (r.products || r.data || r.data?.products || []);
+          const items = extractProducts(r);
           return { category: cat, sample: items[0] || null };
         }).catch(() => ({ category: cat, sample: null }))
       )).then((samples) => {
@@ -205,42 +219,16 @@ export default function Home() {
         <div className="container">
           <h2 className="text-center mb-5 fw-bold">Shop by Category</h2>
           <div className="row">
-            {categorySamples.length === 0 && (
-              <>
-                <div className="col-md-4 mb-4">
-                  <div className="category-card">
-                    <i className="fas fa-apple-alt fa-5x mb-3"></i>
-                    <h4>Fresh Fruits</h4>
-                    <p>Organic and fresh fruits delivered daily</p>
-                    <Link to="/products?category=fruits" className="btn btn-sm btn-shop-category">Shop Now</Link>
-                  </div>
-                </div>
-                <div className="col-md-4 mb-4">
-                  <div className="category-card">
-                    <i className="fas fa-carrot fa-5x mb-3"></i>
-                    <h4>Fresh Vegetables</h4>
-                    <p>Premium quality vegetables from local farms</p>
-                    <Link to="/products?category=vegetables" className="btn btn-sm btn-shop-category">Shop Now</Link>
-                  </div>
-                </div>
-                <div className="col-md-4 mb-4">
-                  <div className="category-card">
-                    <i className="fas fa-drumstick-bite fa-5x mb-3"></i>
-                    <h4>Meat and Dairy</h4>
-                    <p>Fresh meat, dairy, and protein products</p>
-                    <Link to="/products?category=meat-dairy" className="btn btn-sm btn-shop-category">Shop Now</Link>
-                  </div>
-                </div>
-              </>
-            )}
-
             {categorySamples.map((c) => (
               <div className="col-md-4 mb-4" key={c.category}>
                 <div className="category-card category-card-with-image">
                   {c.sample && c.sample.image_url ? (
                     <img src={c.sample.image_url} alt={c.category} className="category-sample-image" />
                   ) : (
-                    <i className="fas fa-box-open fa-5x mb-3"></i>
+                    <div className="category-sample-placeholder">
+                      <i className="fas fa-box-open"></i>
+                      <span>Loading product...</span>
+                    </div>
                   )}
                   <h4 style={{ textTransform: 'capitalize' }}>{c.category.replace(/[-]/g, ' ')}</h4>
                   <p>Shop the best items in {c.category.replace(/[-]/g, ' ')}</p>
