@@ -30,6 +30,54 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    // Customer-specific
+    default_address: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    loyalty_points: {
+        type: Number,
+        default: 0
+    },
+    // Staff/Admin-specific
+    position: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    permissions: {
+        type: [String],
+        default: []
+    },
+    // Delivery rider-specific
+    vehicle_type: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    vehicle_number: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    license_number: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    available: {
+        type: Boolean,
+        default: false
+    },
+    current_location: {
+        // store as GeoJSON-like object { lat, lng }
+        type: {
+            lat: { type: Number },
+            lng: { type: Number }
+        },
+        default: null
+    },
     role: {
         type: String,
         enum: ['customer', 'admin', 'staff', 'delivery_rider'],

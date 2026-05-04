@@ -12,7 +12,9 @@ export default function StaffProfile() {
     email: '',
     phone: '',
     address: '',
-    avatar: null
+    avatar: null,
+    position: '',
+    permissions: []
   });
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [message, setMessage] = useState('');
@@ -31,7 +33,9 @@ export default function StaffProfile() {
           email: user?.email || '',
           phone: user?.phone || '',
           address: user?.address || '',
-          avatar: user?.avatar || null
+          avatar: user?.avatar || null,
+          position: user?.position || '',
+          permissions: user?.permissions || []
         });
       } else {
         setMessage((resp && resp.message) || 'Failed to load profile.');
@@ -94,7 +98,8 @@ export default function StaffProfile() {
     const response = await apiService.put('/auth/profile', {
       name: `${profile.firstName} ${profile.lastName}`.trim(),
       phone: profile.phone,
-      address: profile.address
+      address: profile.address,
+      position: profile.position
     });
     if (response.status !== 'success') {
       setMessage(response.message || 'Failed to update profile');
@@ -189,6 +194,21 @@ export default function StaffProfile() {
                     value={profile.lastName}
                     onChange={(e) => setProfile((prev) => ({ ...prev, lastName: e.target.value }))}
                   />
+                </div>
+              </div>
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">Position</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={profile.position}
+                    onChange={(e) => setProfile((prev) => ({ ...prev, position: e.target.value }))}
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">Permissions</label>
+                  <input type="text" className="form-control" value={(profile.permissions || []).join(', ')} disabled />
                 </div>
               </div>
               <div className="row mb-3">

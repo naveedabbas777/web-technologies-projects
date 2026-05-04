@@ -63,6 +63,45 @@ groccery_store/
 - MongoDB Atlas or another reachable MongoDB instance
 - Optional: Cloudinary account for uploads
 
+## Environment Variables
+
+Use the repo-level [`.env.example`](.env.example) as the reference template. Copy the matching values into the correct place:
+
+### Backend: `backend/.env` or Render backend service
+
+```env
+NODE_ENV=development
+PORT=5000
+DATABASE_TYPE=mongodb
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<db>?retryWrites=true&w=majority
+JWT_SECRET=replace-with-a-long-random-secret
+JWT_EXPIRY=7d
+FRONTEND_URL=http://localhost:5173
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+```
+
+Optional backend values:
+
+```env
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+REDIS_ENABLED=false
+REDIS_URL=
+```
+
+### Frontend: `frontend-react/.env`
+
+```env
+VITE_API_BASE=http://localhost:5000/api
+```
+
+### Render production values
+
+- Backend service: set `MONGODB_URI`, `JWT_SECRET`, `FRONTEND_URL`, and `CORS_ORIGINS`
+- Frontend static site: set `VITE_API_BASE=https://<your-backend-service>.onrender.com/api`
+- Add Cloudinary and Redis values only if you actually use those services
+
 ## Local Setup
 
 ### 1. Clone the repo

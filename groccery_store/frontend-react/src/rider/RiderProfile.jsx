@@ -12,7 +12,11 @@ export default function RiderProfile() {
     email: '',
     phone: '',
     address: '',
-    avatar: null
+    avatar: null,
+    vehicle_type: '',
+    vehicle_number: '',
+    license_number: '',
+    available: false
   });
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [message, setMessage] = useState('');
@@ -32,7 +36,11 @@ export default function RiderProfile() {
           email: user?.email || '',
           phone: user?.phone || '',
           address: user?.address || '',
-          avatar: user?.avatar || null
+          avatar: user?.avatar || null,
+          vehicle_type: user?.vehicle_type || '',
+          vehicle_number: user?.vehicle_number || '',
+          license_number: user?.license_number || '',
+          available: !!user?.available
         });
       } else {
         setMessage((resp && resp.message) || 'Failed to load profile.');
@@ -95,7 +103,11 @@ export default function RiderProfile() {
     const response = await apiService.put('/auth/profile', {
       name: `${profile.firstName} ${profile.lastName}`.trim(),
       phone: profile.phone,
-      address: profile.address
+      address: profile.address,
+      vehicle_type: profile.vehicle_type,
+      vehicle_number: profile.vehicle_number,
+      license_number: profile.license_number,
+      available: profile.available
     });
     if (response.status !== 'success') {
       setMessage(response.message || 'Failed to update profile');
@@ -215,6 +227,45 @@ export default function RiderProfile() {
                   value={profile.address}
                   onChange={(e) => setProfile((prev) => ({ ...prev, address: e.target.value }))}
                 ></textarea>
+              </div>
+              <div className="row mb-3">
+                <div className="col-md-4">
+                  <label className="form-label fw-bold">Vehicle Type</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={profile.vehicle_type}
+                    onChange={(e) => setProfile((prev) => ({ ...prev, vehicle_type: e.target.value }))}
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-bold">Vehicle Number</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={profile.vehicle_number}
+                    onChange={(e) => setProfile((prev) => ({ ...prev, vehicle_number: e.target.value }))}
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-bold">License Number</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={profile.license_number}
+                    onChange={(e) => setProfile((prev) => ({ ...prev, license_number: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="mb-3 form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="riderAvailable"
+                  checked={profile.available}
+                  onChange={(e) => setProfile((prev) => ({ ...prev, available: e.target.checked }))}
+                />
+                <label className="form-check-label" htmlFor="riderAvailable">Available for deliveries</label>
               </div>
               <button className="btn btn-primary" onClick={saveProfile}>
                 Save Changes

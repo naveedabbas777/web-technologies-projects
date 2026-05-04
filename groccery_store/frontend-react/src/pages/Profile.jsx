@@ -28,7 +28,9 @@ export default function Profile() {
             name: me.user.name,
             email: me.user.email,
             phone: me.user.phone || '',
-            address: me.user.address || ''
+            address: me.user.address || '',
+            default_address: me.user.default_address || '',
+            loyalty_points: me.user.loyalty_points || 0
           };
           setProfile(updated);
           localStorage.setItem('user', JSON.stringify(updated));
@@ -50,7 +52,8 @@ export default function Profile() {
       const response = await apiService.put('/auth/profile', {
         name: profile.name,
         phone: profile.phone,
-        address: profile.address
+        address: profile.address,
+        default_address: profile.default_address
       });
       if (response.status !== 'success') {
         throw new Error(response.message || 'Profile update failed');
@@ -249,6 +252,14 @@ export default function Profile() {
                     <span className="label">Address</span>
                     <strong>{profile.address || 'Not set'}</strong>
                   </div>
+                  <div>
+                    <span className="label">Default Address</span>
+                    <strong>{profile.default_address || 'Not set'}</strong>
+                  </div>
+                  <div>
+                    <span className="label">Loyalty Points</span>
+                    <strong>{profile.loyalty_points ?? 0}</strong>
+                  </div>
                 </div>
                 <div className="profile-form-actions">
                   <button type="button" className="btn btn-primary" onClick={() => setEditMode(true)}>
@@ -367,6 +378,16 @@ export default function Profile() {
                     className="form-control"
                     name="address"
                     value={profile.address || ''}
+                    onChange={handleProfileChange}
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Default Address</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="default_address"
+                    value={profile.default_address || ''}
                     onChange={handleProfileChange}
                   />
                 </div>

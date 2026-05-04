@@ -127,7 +127,8 @@ exports.getProfile = async (req, res) => {
         const userResponse = user.toObject();
         delete userResponse.password;
 
-        return res.success(200, null, null, { user: userResponse });
+        // Return user inside `data` so frontend can read `resp.data.user`
+        return res.success(200, null, { user: userResponse });
     } catch (error) {
         console.error('Get Profile Error:', error);
         return res.error(500, error.message || 'Failed to get profile', 'PROFILE_FETCH_FAILED');
@@ -138,7 +139,15 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         const userId = req.user?.id;
-        const { name, phone, address, avatar } = req.body;
+        const { name, phone, address, avatar,
+            // customer
+            default_address,
+            // staff/admin
+            position,
+            // rider
+            vehicle_type, vehicle_number, license_number, available,
+            current_location
+        } = req.body;
 
         if (!userId) {
             return res.error(401, 'Unauthorized', 'UNAUTHORIZED');
@@ -149,11 +158,20 @@ exports.updateProfile = async (req, res) => {
             return res.error(404, 'User not found', 'USER_NOT_FOUND');
         }
 
-        // Update allowed fields
+        // Update allowed fields (common)
         if (name) user.name = name;
         if (phone) user.phone = phone;
         if (address) user.address = address;
         if (avatar) user.avatar = avatar;
+
+        // Role-specific updates
+        if (default_address !== undefined) user.default_address = default_address;
+        if (position !== undefined) user.position = position;
+        if (vehicle_type !== undefined) user.vehicle_type = vehicle_type;
+        if (vehicle_number !== undefined) user.vehicle_number = vehicle_number;
+        if (license_number !== undefined) user.license_number = license_number;
+        if (available !== undefined) user.available = available;
+        if (current_location !== undefined) user.current_location = current_location;
         user.updated_at = new Date();
 
         await user.save();
@@ -161,7 +179,8 @@ exports.updateProfile = async (req, res) => {
         const userResponse = user.toObject();
         delete userResponse.password;
 
-        return res.success(200, 'Profile updated successfully', null, { user: userResponse });
+        // Return user inside `data` so frontend can read `resp.data.user`
+        return res.success(200, 'Profile updated successfully', { user: userResponse });
     } catch (error) {
         console.error('Update Profile Error:', error);
         return res.error(500, error.message || 'Failed to update profile', 'PROFILE_UPDATE_FAILED');
@@ -252,10 +271,12 @@ exports.uploadAvatar = async (req, res) => {
         const userResponse = user.toObject();
         delete userResponse.password;
 
-        res.status(200).json({
+        // Return both `user` at top-level and inside `data` for backward compatibility
+        return res.status(200).json({
             status: 'success',
             message: 'Avatar uploaded successfully',
-            user: userResponse
+            user: userResponse,
+            data: { user: userResponse }
         });
     } catch (error) {
         console.error('Upload Avatar Error:', error);
