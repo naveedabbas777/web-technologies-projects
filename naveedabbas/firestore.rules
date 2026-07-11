@@ -1,0 +1,164 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- helpers -----------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Admin if: custom claim `admin: true` OR users/{uid}.isAdmin == true
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true
+        || (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+        )
+      );
+    }
+
+    // --- validators --------------------------------------------------------
+    function isValidMessage() {
+      return request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 200
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.email.size() <= 200
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 5000
+        // allow createdAt to be omitted or a timestamp (clients typically use serverTimestamp)
+        && ( !request.resource.data.keys().hasAny(['createdAt']) || request.resource.data.createdAt is timestamp );
+    }
+
+    function isValidSkill(data) {
+      return data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 200
+        && (data.level is string || data.level == null)
+        && (data.order is int || data.order == null);
+    }
+
+    function isValidAchievement(data) {
+      return data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 300
+        && (data.year is string || data.year is number || data.year == null)
+        && (data.order is int || data.order == null);
+    }
+
+    function isValidProject(data) {
+      return data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 300
+        && (data.category is string || data.category == null)
+        && (data.description is string || data.description == null)
+        && (data.imageUrl is string || data.imageUrl == null)
+        && (data.link is string || data.link == null)
+        && (data.order is int || data.order == null);
+    }
+
+    function isValidWorkExperience(data) {
+      return (data.title is string || data.text is string || data.name is string)
+        && (data.period is string || data.year is string || data.period == null)
+        && (data.company is string || data.company == null)
+        && (data.order is int || data.order == null);
+    }
+
+    function isValidListItem(data) {
+      // generic { text, order } document
+      return data.text is string
+        && data.text.size() > 0
+        && data.text.size() <= 500
+        && (data.order is int || data.order == null);
+    }
+
+    // --- collection rules --------------------------------------------------
+
+    match /achievements/{docId} {
+      // public read
+      allow read: if true;
+      // admin-only writes with validation (delete doesn't need validation)
+      allow create, update: if isAdmin() && isValidAchievement(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /skills/{docId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidSkill(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /projects/{docId} {
+      allow read: if true;
+      // Allow admins to create projects without strict validation to avoid blocking UI
+      allow create: if isAdmin();
+      // Updates must still pass validation to keep data clean
+      allow update: if isAdmin() && isValidProject(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /specialization/{docId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidListItem(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /education/{docId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidListItem(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /awards/{docId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidListItem(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /workExperience/{docId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidWorkExperience(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      // site settings (profile, hero, etc.) are readable by everyone, writable only by admins
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /messages/{msgId} {
+      // Contact form: anyone (including anonymous) may CREATE a message (validated).
+      allow create: if isValidMessage();
+
+      // Only admins may read / update / delete messages from the Admin UI
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      // A user can read their own user document; admins can read/update/delete any user doc.
+      // Prevent clients from setting or changing `isAdmin` — only admins/server may set that flag.
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+
+      // Allow clients to create their user doc but forbid providing `isAdmin`.
+      allow create: if isSignedIn() && request.auth.uid == userId
+                    && !request.resource.data.keys().hasAny(['isAdmin']);
+
+      // Users may update their own profile but cannot set `isAdmin`. Admins may update any field.
+      allow update: if isSignedIn() && (
+        (request.auth.uid == userId && !request.resource.data.keys().hasAny(['isAdmin']))
+        || isAdmin()
+      );
+
+      allow delete: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // deny everything else by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
