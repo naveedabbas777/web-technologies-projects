@@ -43,6 +43,9 @@ export default function AdminProjectsTab({
   cancelEditProject,
   saveEditedProject,
   deleteProject,
+  onProjectDragStart,
+  onProjectDragOver,
+  onProjectDrop,
 }) {
   return (
     <div className="admin-tab-section admin-projects-tab">
@@ -89,6 +92,9 @@ export default function AdminProjectsTab({
       <hr />
 
       <h4 style={{ marginTop: 8 }}>Existing Projects</h4>
+      <p style={{ marginTop: 4, marginBottom: 12, color: '#6c757d', fontSize: '0.95rem' }}>
+        Drag and drop projects to prioritize the order shown on the home screen.
+      </p>
       {loading ? (
         <p>Loading…</p>
       ) : projects.length === 0 ? (

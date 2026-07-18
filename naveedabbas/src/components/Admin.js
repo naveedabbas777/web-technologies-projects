@@ -641,6 +641,21 @@ function Admin() {
     }
   };
 
+  const onProjectDrop = async (e, targetId) => {
+    e.preventDefault();
+    const draggedId = e.dataTransfer.getData('text/plain');
+    if (!draggedId || draggedId === targetId) return;
+    const updated = moveItem(projects, draggedId, targetId);
+    setProjects(updated);
+    try {
+      await reorderItems(db, 'projects', updated.map((x) => x.id));
+      setStatus('Projects order saved');
+    } catch (err) {
+      setError(err, 'Failed to save projects order');
+      setProjects(projectsData);
+    }
+  };
+
   const addSkill = async () => {
     if (!skillName.trim()) return setStatus('Please enter skill name');
     setLoading(true);

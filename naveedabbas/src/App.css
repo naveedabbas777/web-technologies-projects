@@ -282,10 +282,12 @@ html {
   display: flex;
   gap: 8px;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.nav-links a {
+.nav-links a,
+.nav-links .btn {
   color: var(--text-secondary);
   text-decoration: none;
   padding: 10px 16px;
@@ -294,6 +296,18 @@ html {
   font-size: 0.95rem;
   transition: all 0.2s ease;
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-links .btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.nav-links .btn:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .nav-links a::before {
@@ -798,14 +812,22 @@ html {
   .hero-three-column {
     padding: 30px 4% 50px;
   }
+
+  .hero-three-column {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-column {
+    width: 100%;
+  }
   
   .skills-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   
   .hero-profile-image {
-    width: 160px;
-    height: 160px;
+    width: 140px;
+    height: 140px;
   }
   
   .hero-name {
@@ -816,9 +838,78 @@ html {
     gap: 4px;
   }
   
-  .nav-links a {
-    padding: 8px 12px;
+  .nav-links a,
+  .nav-links .btn {
+    padding: 10px 12px;
     font-size: 0.9rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .navbar .container-fluid {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .navbar .navbar-collapse {
+    background: rgba(7, 15, 29, 0.95);
+    margin-top: 12px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 14px;
+  }
+
+  .navbar .brand {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .navbar .avatar {
+    width: 42px;
+    height: 42px;
+  }
+
+  .hero-projects-wrapper,
+  .hero-profile-card,
+  .hero-section-card {
+    padding: 20px;
+  }
+
+  .admin-panel {
+    padding: 30px 3% !important;
+  }
+
+  .admin-panel .admin-tabs {
+    gap: 6px;
+    justify-content: flex-start;
+  }
+
+  .admin-panel .admin-tabs .btn.tab {
+    flex: 1 1 48%;
+    min-width: 140px;
+    padding: 10px 12px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .admin-panel .admin-tab-content {
+    padding-top: 12px;
+  }
+
+  .project-preview-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+  }
+
+  .project-preview-image {
+    width: 100%;
+    min-width: auto;
+    height: 180px;
+  }
+
+  .project-preview-content {
+    width: 100%;
   }
 }
 

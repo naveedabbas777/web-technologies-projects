@@ -61,7 +61,7 @@ function Navbar({ user, setUser }) {
       onToggle={(nextExpanded) => setExpanded(nextExpanded)}
     >
       <Container fluid className="px-4">
-        <BootstrapNavbar.Brand className="brand d-flex align-items-center gap-3">
+        <BootstrapNavbar.Brand as={Link} to="/" onClick={closeMenu} className="brand d-flex align-items-center gap-3">
           <span>{siteName}</span>
           {effectiveSiteProfile ? (
             <img
@@ -88,19 +88,19 @@ function Navbar({ user, setUser }) {
 
         <BootstrapNavbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto nav-links align-items-center">
-            <NavLink to="/" className="nav-link text-white" onClick={closeMenu}>Home</NavLink>
-            <NavLink to="/projects" className="nav-link text-white" onClick={closeMenu}>Projects</NavLink>
-            <NavLink to="/specialization" className="nav-link text-white" onClick={closeMenu}>Specialization</NavLink>
-            <NavLink to="/achievements" className="nav-link text-white" onClick={closeMenu}>Achievements</NavLink>
-            <NavLink to="/education" className="nav-link text-white" onClick={closeMenu}>Education</NavLink>
-            <NavLink to="/awards" className="nav-link text-white" onClick={closeMenu}>Awards</NavLink>
-            <NavLink to="/contact" className="nav-link text-white" onClick={closeMenu}>Contact</NavLink>
+            <Nav.Link as={NavLink} to="/" onClick={closeMenu}>Home</Nav.Link>
+            <Nav.Link as={NavLink} to="/projects" onClick={closeMenu}>Projects</Nav.Link>
+            <Nav.Link as={NavLink} to="/specialization" onClick={closeMenu}>Specialization</Nav.Link>
+            <Nav.Link as={NavLink} to="/achievements" onClick={closeMenu}>Achievements</Nav.Link>
+            <Nav.Link as={NavLink} to="/education" onClick={closeMenu}>Education</Nav.Link>
+            <Nav.Link as={NavLink} to="/awards" onClick={closeMenu}>Awards</Nav.Link>
+            <Nav.Link as={NavLink} to="/contact" onClick={closeMenu}>Contact</Nav.Link>
             {user ? (
               <button onClick={logout} className="btn ms-2" aria-label="Logout">
                 <FaSignOutAlt /> Logout
               </button>
             ) : (
-              <Link to="/admin" className="btn ms-2" onClick={closeMenu}>Admin</Link>
+              <Nav.Link as={Link} to="/admin" className="btn ms-2" onClick={closeMenu}>Admin</Nav.Link>
             )}
           </Nav>
         </BootstrapNavbar.Collapse>

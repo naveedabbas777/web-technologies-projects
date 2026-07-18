@@ -8,7 +8,7 @@ import useFirestoreDoc from '../hooks/useFirestoreDoc';
 export default function Resume() {
   const { data: skills = [] } = useFirestoreCollection({ db, collectionPath: 'skills', orderField: 'order', defaultValue: [] });
   const { data: achievements = [] } = useFirestoreCollection({ db, collectionPath: 'achievements', orderField: 'order', defaultValue: [] });
-  const { data: projects = [] } = useFirestoreCollection({ db, collectionPath: 'projects', orderField: 'title', defaultValue: [] });
+  const { data: projects = [] } = useFirestoreCollection({ db, collectionPath: 'projects', orderField: 'order', defaultValue: [] });
   const { data: specialization = [] } = useFirestoreCollection({ db, collectionPath: 'specialization', orderField: 'order', defaultValue: [] });
   const { data: education = [] } = useFirestoreCollection({ db, collectionPath: 'education', orderField: 'order', defaultValue: [] });
   const { data: awards = [] } = useFirestoreCollection({ db, collectionPath: 'awards', orderField: 'order', defaultValue: [] });
