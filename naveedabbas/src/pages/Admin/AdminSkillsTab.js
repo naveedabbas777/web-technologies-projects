@@ -4,6 +4,8 @@ export default function AdminSkillsTab({
   setSkillName,
   skillLevel,
   setSkillLevel,
+  skillDetails,
+  setSkillDetails,
   skills,
   loading,
   editingSkillId,
@@ -11,6 +13,8 @@ export default function AdminSkillsTab({
   setEditSkillName,
   editSkillLevel,
   setEditSkillLevel,
+  editSkillDetails,
+  setEditSkillDetails,
   addSkill,
   startEditSkill,
   cancelEditSkill,
@@ -32,6 +36,15 @@ export default function AdminSkillsTab({
           onChange={(e) => setSkillLevel(e.target.value)}
           style={{ width: 180 }}
         />
+      </div>
+      <textarea
+        value={skillDetails}
+        placeholder="Skill details / experience (optional)"
+        rows={3}
+        onChange={(e) => setSkillDetails(e.target.value)}
+        style={{ marginTop: 8 }}
+      />
+      <div className="admin-inline-row" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
         <button className="btn" onClick={addSkill}>
           Add Skill
         </button>
@@ -61,12 +74,20 @@ export default function AdminSkillsTab({
             }}
           >
             {editingSkillId === s.id ? (
-              <div className="admin-inline-row" style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <input value={editSkillName} onChange={(e) => setEditSkillName(e.target.value)} style={{ flex: 1 }} />
-                <input
-                  value={editSkillLevel}
-                  onChange={(e) => setEditSkillLevel(e.target.value)}
-                  style={{ width: 180 }}
+              <div className="admin-edit-grid" style={{ flex: 1, display: 'grid', gap: 8 }}>
+                <div className="admin-inline-row" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input value={editSkillName} onChange={(e) => setEditSkillName(e.target.value)} style={{ flex: 1 }} />
+                  <input
+                    value={editSkillLevel}
+                    onChange={(e) => setEditSkillLevel(e.target.value)}
+                    style={{ width: 180 }}
+                  />
+                </div>
+                <textarea
+                  value={editSkillDetails}
+                  onChange={(e) => setEditSkillDetails(e.target.value)}
+                  placeholder="Skill details / experience"
+                  rows={3}
                 />
                 <div className="admin-inline-actions">
                   <button className="btn" onClick={saveEditedSkill}>
@@ -82,7 +103,10 @@ export default function AdminSkillsTab({
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <span style={{ opacity: 0.6, marginRight: 8 }}>≡</span>
                   <div>
-                    {s.name} {s.level ? <span style={{ color: '#9ca3af' }}>— {s.level}</span> : null}
+                    <div>
+                      {s.name} {s.level ? <span style={{ color: '#9ca3af' }}>— {s.level}</span> : null}
+                    </div>
+                    {s.details ? <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: 4 }}>{s.details}</div> : null}
                   </div>
                 </div>
                 <div className="admin-inline-actions">

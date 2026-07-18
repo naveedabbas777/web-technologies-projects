@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import db from "../firebase";
 import { doc, onSnapshot, collection, query, orderBy, limit } from "firebase/firestore";
+import { getTextPreview } from "../utils/textUtils";
 
 function Hero() {
   const [siteProfileImage, setSiteProfileImage] = useState(null);
@@ -10,6 +11,7 @@ function Hero() {
   const [workExperience, setWorkExperience] = useState([]);
   const [workExperienceFallback, setWorkExperienceFallback] = useState([]);
   const [recentProjects, setRecentProjects] = useState([]);
+  const [expandedProjectIds, setExpandedProjectIds] = useState({});
 
   useEffect(() => {
     const ref = doc(db, 'settings', 'profile');
@@ -156,25 +158,48 @@ function Hero() {
           </div>
         ) : (
           <div className="projects-list">
-            {recentProjects.map((project) => (
-              <div key={project.id} className="glass project-preview-card">
-                {project.imageUrl && (
-                  <div className="project-preview-image">
-                    <img src={project.imageUrl} alt={project.title} />
-                  </div>
-                )}
-                <div className="project-preview-content">
-                  <h4 className="project-preview-title">{project.title}</h4>
-                  {project.category && <p className="project-preview-category">{project.category}</p>}
-                  {project.description && <p className="project-preview-desc">{project.description}</p>}
-                  {project.link && (
-                    <a href={project.link} target="_blank" rel="noreferrer" className="project-preview-link">
-                      View Project →
-                    </a>
+            {recentProjects.map((project) => {
+              const previewInfo = getTextPreview(project.description, 2);
+              const previewText = previewInfo.preview;
+              const isTruncated = previewInfo.isTruncated;
+              const isExpanded = expandedProjectIds[project.id];
+
+              return (
+                <div key={project.id} className="glass project-preview-card">
+                  {project.imageUrl && (
+                    <div className="project-preview-image">
+                      <img src={project.imageUrl} alt={project.title} />
+                    </div>
                   )}
+                  <div className="project-preview-content">
+                    <h4 className="project-preview-title">{project.title}</h4>
+                    {project.category && <p className="project-preview-category">{project.category}</p>}
+                    {project.description ? (
+                      <>
+                        <p className="project-preview-desc" style={{ whiteSpace: 'pre-line' }}>
+                          {isExpanded ? project.description : previewText}
+                        </p>
+                        {isTruncated && (
+                          <button
+                            type="button"
+                            className="link-button"
+                            onClick={() => setExpandedProjectIds((prev) => ({ ...prev, [project.id]: !prev[project.id] }))}
+                            style={{ padding: 0, border: 'none', background: 'none', color: 'var(--primary)', cursor: 'pointer' }}
+                          >
+                            {isExpanded ? 'Show less' : 'Read more'}
+                          </button>
+                        )}
+                      </>
+                    ) : null}
+                    {project.link && (
+                      <a href={project.link} target="_blank" rel="noreferrer" className="project-preview-link">
+                        View Project →
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

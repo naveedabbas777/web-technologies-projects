@@ -14,7 +14,7 @@ export default function useFirestoreDoc({
   const pathKey = useMemo(() => {
     if (!Array.isArray(path)) return '';
     return path.join('/');
-  }, [Array.isArray(path) ? path.join('/') : '']);
+  }, [path]);
 
   const pathSegments = useMemo(() => {
     if (!pathKey) return [];
@@ -44,7 +44,7 @@ export default function useFirestoreDoc({
     );
 
     return () => unsub();
-  }, [db, enabled, defaultValue, pathKey]);
+  }, [db, enabled, defaultValue, pathKey, pathSegments]);
 
   return { data, loading, error };
 }

@@ -4,7 +4,7 @@ import { onAuthStateChanged, onIdTokenChanged } from "firebase/auth";
 import { auth } from "./firebase";
 
 import { Navbar, Footer, ParticlesBackground } from "./components/layout";
-import { Hero, About, Projects, Contact, Resume, Login, Admin } from "./pages";
+import { Hero, Projects, Contact, Resume, Specialization, Achievements, Education, Awards, Login, Admin } from "./pages";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
@@ -34,8 +34,11 @@ function AppRoutes({ user, setUser }) {
         <Route path="/" element={<Hero />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/about" element={<About />} />
         <Route path="/resume" element={<Resume />} />
+        <Route path="/specialization" element={<Specialization />} />
+        <Route path="/achievements" element={<Achievements />} />
+        <Route path="/education" element={<Education />} />
+        <Route path="/awards" element={<Awards />} />
         <Route path="/admin" element={user ? <Admin /> : <Login />} />
         <Route path="*" element={<Hero />} />
       </Routes>

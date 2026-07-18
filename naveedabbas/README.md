@@ -100,6 +100,92 @@ REACT_APP_EMAILJS_TEMPLATE_ID=your_template_id
 REACT_APP_EMAILJS_PUBLIC_KEY=your_public_key
 ```
 
+Optional: Cloudinary (recommended for image hosting)
+
+1. In Cloudinary, create an *unsigned* upload preset: Dashboard → Settings → Upload → Upload presets → Add preset → uncheck "Sign uploads".
+2. Create a local env file (do NOT commit) `.env.local` and add:
+
+```env
+REACT_APP_CLOUDINARY_CLOUD_NAME=your_cloud_name
+REACT_APP_CLOUDINARY_UPLOAD_PRESET=your_unsigned_upload_preset
+```
+
+3. Restart the dev server (`npm start`). The admin UI will now upload images to Cloudinary (falls back to Firebase Storage if Cloudinary is not configured).
+
+Use the provided `.env.example` as a template.
+
+Server signing (recommended)
+
+1. Create a folder `server/` (already added) and set server env vars (do NOT commit):
+
+```
+cd server
+copy ..\.env.example ..\server\.env.local  (or manually create .env)
+```
+
+2. In `server/.env.local` set:
+
+```
+CLOUDINARY_API_KEY=937116636894453
+CLOUDINARY_API_SECRET=-mcIgV9mFiCgh1SXDE7j9kgEeg4
+CLOUDINARY_CLOUD_NAME=cmbtvqrs
+```
+
+3. Start the signing server:
+
+```bash
+cd server
+npm install
+npm start
+```
+
+4. Add `REACT_APP_CLOUDINARY_SIGNING_URL=http://localhost:5000` to your client `.env.local` and restart the React dev server.
+
+With signing enabled the client will request a short-lived signature from the signing server and perform a signed upload to Cloudinary (more secure than unsigned uploads).
+
+CI / GitHub Actions deploy
+
+You can automate deploys to Firebase Hosting using GitHub Actions. The repository includes a workflow at `.github/workflows/firebase-hosting-deploy.yml` that builds the app and runs `firebase deploy` on pushes to `main`.
+
+Setup steps:
+
+1. In the repo on GitHub, add a repository secret named `FIREBASE_TOKEN`. Generate it locally with:
+
+```bash
+npx firebase-tools login:ci
+```
+
+2. Copy the generated token into the `FIREBASE_TOKEN` secret in GitHub Settings → Secrets.
+
+3. Push to `main` — the action will build and deploy automatically.
+
+Local deploy
+
+1. Ensure you have the Firebase CLI installed:
+
+```bash
+npm install -g firebase-tools
+```
+
+2. Build the site:
+
+```bash
+npm ci
+npm run build
+```
+
+3. Deploy to your Firebase project (the default project is set in `.firebaserc`):
+
+```bash
+firebase login
+firebase deploy --only hosting
+```
+
+Notes
+
+- Do NOT commit secrets (Cloudinary API secret or Firebase tokens) into the repository. Use environment variables or GitHub secrets.
+- If you want the Cloudinary signing server deployed alongside the site, consider implementing it as a Firebase Function so it can be deployed within the same Firebase project. I can scaffold that if you'd like.
+
 Notes:
 - If EmailJS keys are missing, contact submissions are still saved to Firestore.
 - Firebase Web config is loaded from `src/firebase.js`.

@@ -1,2 +1,2 @@
 export { normalizeImageUrl } from './imageUtils';
-export { parseLines } from './textUtils';
+export { parseLines, getTextPreview } from './textUtils';

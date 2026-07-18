@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
 import db from "../firebase";
 import useFirestoreDoc from "../hooks/useFirestoreDoc";
 import useFirestoreCollection from "../hooks/useFirestoreCollection";
+import { getTextPreview } from "../utils/textUtils";
 
 function Projects() {
+  const [expandedProjectIds, setExpandedProjectIds] = useState({});
   const { data: sectionVisibility = {} } = useFirestoreDoc({ db, path: ['settings', 'sectionVisibility'], defaultValue: {} });
-  const { data: projects = [] } = useFirestoreCollection({ db, collectionPath: 'projects', orderField: 'title', defaultValue: [] });
+  const { data: projects = [] } = useFirestoreCollection({ db, collectionPath: 'projects', orderField: 'order', defaultValue: [] });
 
   const showOnSite = sectionVisibility.projects?.showOnSite ?? true;
 
@@ -28,37 +31,78 @@ function Projects() {
         </div>
       ) : (
         <Row className="g-4 fade-in">
-          {projects.map(project => (
-            <Col key={project.id} xs={12} sm={6} md={6} lg={4} xl={3}>
-              <Card className="glass project-card h-100 border-0 overflow-hidden">
-                <div
-                  className="project-card-hero"
-                  style={project.imageUrl ? { backgroundImage: `url(${project.imageUrl})` } : {}}
-                >
-                  <div className="project-card-hero-overlay">
-                    <div className="project-card-hero-title">
-                      {project.title}
-                    </div>
-                    {project.category && (
-                      <div className="project-card-hero-category">
-                        {project.category}
+          {projects.map(project => {
+            const previewInfo = getTextPreview(project.description, 2);
+            const previewText = previewInfo.preview;
+            const isExpanded = expandedProjectIds[project.id];
+
+            return (
+              <Col key={project.id} xs={12} sm={6} md={6} lg={4} xl={3}>
+                <Card className="glass project-card h-100 border-0 overflow-hidden">
+                  <div
+                    className="project-card-hero"
+                    style={project.imageUrl ? { backgroundImage: `url(${project.imageUrl})` } : {}}
+                  >
+                    <div className="project-card-hero-overlay">
+                      <div className="project-card-hero-title">
+                        {project.title}
                       </div>
-                    )}
-                    {project.link && (
-                      <a
-                        href={project.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-sm project-card-hero-button"
-                      >
-                        View Project →
-                      </a>
-                    )}
+                      {project.category && (
+                        <div className="project-card-hero-category">
+                          {project.category}
+                        </div>
+                      )}
+                      {(project.liveUrl || project.link) && (
+                        <a
+                          href={project.liveUrl || project.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-sm project-card-hero-button"
+                        >
+                          View Project →
+                        </a>
+                      )}
+                      {project.repoUrl && (
+                        <a
+                          href={project.repoUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-sm project-card-hero-button"
+                          style={{ marginLeft: 8 }}
+                        >
+                          View Code
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            </Col>
-          ))}
+                  <Card.Body>
+                    {project.description ? (
+                      <>
+                        <p className="project-preview-desc" style={{ whiteSpace: 'pre-line' }}>
+                          {isExpanded ? project.description : previewText}
+                        </p>
+                        {previewInfo.isTruncated && (
+                          <button
+                            type="button"
+                            className="link-button"
+                            onClick={() => setExpandedProjectIds((prev) => ({ ...prev, [project.id]: !prev[project.id] }))}
+                            style={{ padding: 0, border: 'none', background: 'none', color: 'var(--primary)', cursor: 'pointer' }}
+                          >
+                            {isExpanded ? 'Show less' : 'Read more'}
+                          </button>
+                        )}
+                      </>
+                    ) : null}
+                    {project.technologies ? (
+                      <p className="text-muted mb-0" style={{ fontSize: '0.95rem' }}>
+                        <strong>Tech:</strong> {project.technologies}
+                      </p>
+                    ) : null}
+                  </Card.Body>
+                </Card>
+              </Col>
+            );
+          })}
         </Row>
       )}
     </Container>

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { normalizeImageUrl } from '../../utils';
 
 export default function AdminProjectsTab({
   visibilityNode,
@@ -8,8 +9,16 @@ export default function AdminProjectsTab({
   setCategory,
   projectImageUrl,
   setProjectImageUrl,
+  projectImageFile,
+  setProjectImageFile,
+  projectDescription,
+  setProjectDescription,
+  projectTechnologies,
+  setProjectTechnologies,
   projectLink,
   setProjectLink,
+  projectRepoLink,
+  setProjectRepoLink,
   projects,
   loading,
   editingProjectId,
@@ -19,8 +28,16 @@ export default function AdminProjectsTab({
   setEditCategory,
   editProjectImageUrl,
   setEditProjectImageUrl,
+  editProjectImageFile,
+  setEditProjectImageFile,
+  editProjectDescription,
+  setEditProjectDescription,
+  editProjectTechnologies,
+  setEditProjectTechnologies,
   editProjectLink,
   setEditProjectLink,
+  editProjectRepoLink,
+  setEditProjectRepoLink,
   addProject,
   startEditProject,
   cancelEditProject,
@@ -37,6 +54,23 @@ export default function AdminProjectsTab({
         value={projectImageUrl}
         placeholder="Image URL (optional)"
         onChange={(e) => setProjectImageUrl(e.target.value)}
+      />
+      <input type="file" accept="image/*" onChange={(e) => setProjectImageFile && setProjectImageFile(e.target.files[0])} />
+      <textarea
+        value={projectDescription}
+        placeholder="Project description (use multiple lines for details)"
+        rows={4}
+        onChange={(e) => setProjectDescription(e.target.value)}
+      />
+      <input
+        value={projectTechnologies}
+        placeholder="Tools / Technologies (comma-separated)"
+        onChange={(e) => setProjectTechnologies(e.target.value)}
+      />
+      <input
+        value={projectRepoLink}
+        placeholder="GitHub repo link (optional)"
+        onChange={(e) => setProjectRepoLink(e.target.value)}
       />
       <input
         value={projectLink}
@@ -61,7 +95,21 @@ export default function AdminProjectsTab({
         <p>No projects yet</p>
       ) : (
         projects.map((p) => (
-          <div key={p.id} className="admin-item-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+          <div
+            key={p.id}
+            className="admin-item-row"
+            draggable
+            onDragStart={(e) => onProjectDragStart(e, p.id)}
+            onDragOver={onProjectDragOver}
+            onDrop={(e) => onProjectDrop(e, p.id)}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: 8,
+              cursor: 'grab',
+            }}
+          >
             {editingProjectId === p.id ? (
               <div className="admin-edit-grid" style={{ flex: 1, display: 'grid', gap: 8 }}>
                 <div className="admin-inline-row" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -72,6 +120,23 @@ export default function AdminProjectsTab({
                   value={editProjectImageUrl}
                   onChange={(e) => setEditProjectImageUrl(e.target.value)}
                   placeholder="Image URL"
+                />
+                <input type="file" accept="image/*" onChange={(e) => setEditProjectImageFile && setEditProjectImageFile(e.target.files[0])} />
+                <textarea
+                  value={editProjectDescription}
+                  onChange={(e) => setEditProjectDescription(e.target.value)}
+                  placeholder="Project description"
+                  rows={4}
+                />
+                <input
+                  value={editProjectTechnologies}
+                  onChange={(e) => setEditProjectTechnologies(e.target.value)}
+                  placeholder="Tools / Technologies"
+                />
+                <input
+                  value={editProjectRepoLink}
+                  onChange={(e) => setEditProjectRepoLink(e.target.value)}
+                  placeholder="GitHub repo link"
                 />
                 <input
                   value={editProjectLink}
@@ -89,8 +154,17 @@ export default function AdminProjectsTab({
               </div>
             ) : (
               <>
-                <div>
-                  {p.title} — {p.category} {p.link ? <span className="muted">— 🔗</span> : null}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {p.imageUrl ? (
+                    <img
+                      src={normalizeImageUrl(p.imageUrl)}
+                      alt={p.title}
+                      style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 6 }}
+                    />
+                  ) : null}
+                  <div>
+                    {p.title} — {p.category} {(p.liveUrl || p.link) ? <span className="muted">— 🔗</span> : null} {p.repoUrl ? <span className="muted"> — GH</span> : null}
+                  </div>
                 </div>
                 <div className="admin-inline-actions">
                   <button onClick={() => startEditProject(p)} style={{ marginLeft: 8 }}>

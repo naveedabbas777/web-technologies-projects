@@ -78,6 +78,13 @@ function ListSectionBlock({
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1 }}>
                       <span style={{ opacity: 0.5, fontSize: '1.2rem', cursor: 'grab' }}>☰</span>
                       <span style={{ fontSize: '0.85rem', color: 'var(--muted)', minWidth: 24 }}>#{idx + 1}</span>
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.text}
+                          style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 6, marginRight: 12 }}
+                        />
+                      ) : null}
                       <div style={{ flex: 1, fontWeight: 500 }}>{item.text}</div>
                     </div>
                     <div className="admin-inline-actions" style={{ display: 'flex', gap: 8 }}>
@@ -137,6 +144,9 @@ export default function AdminResumeSectionsTab({
   setSpecializationItems,
   setEducationItems,
   setAwardsItems,
+  awardFile,
+  setAwardFile,
+  onAddAward,
 }) {
   return (
     <div className="admin-tab-section admin-resume-tab">
@@ -145,8 +155,7 @@ export default function AdminResumeSectionsTab({
         {resumeVisibilityNode}
         <p className="lead" style={{ marginBottom: 4 }}>
           Manage list items for Specialization, Education, and Scholarships/Awards. These collections are displayed on
-          the <Link to="/resume" style={{ color: 'var(--accent-2)', textDecoration: 'none' }}>Resume</Link> page and{' '}
-          <Link to="/about" style={{ color: 'var(--accent-2)', textDecoration: 'none' }}>About</Link> page.
+          the <Link to="/resume" style={{ color: 'var(--accent-2)', textDecoration: 'none' }}>Resume</Link> page and other section pages.
         </p>
         <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: 8 }}>
           💡 Drag items to reorder them. Changes appear instantly on your portfolio.
@@ -223,6 +232,12 @@ export default function AdminResumeSectionsTab({
         Visibility Controls
       </p>
       {awardsVisibilityNode}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+        <input type="file" accept="image/*" onChange={(e) => setAwardFile && setAwardFile(e.target.files[0])} />
+        <button className="btn" onClick={() => onAddAward && onAddAward()} disabled={!newAward.trim()}>
+          Add Award with Image
+        </button>
+      </div>
       <ListSectionBlock
         title="Scholarships & Awards"
         icon="🏆"
@@ -233,7 +248,7 @@ export default function AdminResumeSectionsTab({
         editingId={editingAwardId}
         editText={editAwardText}
         setEditText={setEditAwardText}
-        onAdd={() => addListItem('awards', newAward, awardsItems.length)}
+        onAdd={() => (onAddAward ? onAddAward() : addListItem('awards', newAward, awardsItems.length))}
         onSaveEdit={(id) => saveEditedListItem('awards', id, editAwardText)}
         onCancelEdit={() => {
           setEditingAwardId(null);

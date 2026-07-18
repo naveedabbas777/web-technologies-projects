@@ -28,7 +28,6 @@ export default function Footer() {
             <nav className="footer-links d-flex flex-wrap justify-content-center gap-3" aria-label="Footer navigation">
               <Link to="/" className="text-decoration-none text-secondary">Home</Link>
               <Link to="/projects" className="text-decoration-none text-secondary">Projects</Link>
-              <Link to="/about" className="text-decoration-none text-secondary">About</Link>
               <Link to="/contact" className="text-decoration-none text-secondary">Contact</Link>
             </nav>
           </Col>

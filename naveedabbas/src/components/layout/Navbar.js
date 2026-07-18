@@ -90,7 +90,10 @@ function Navbar({ user, setUser }) {
           <Nav className="ms-auto nav-links align-items-center">
             <NavLink to="/" className="nav-link text-white" onClick={closeMenu}>Home</NavLink>
             <NavLink to="/projects" className="nav-link text-white" onClick={closeMenu}>Projects</NavLink>
-            <NavLink to="/about" className="nav-link text-white" onClick={closeMenu}>About</NavLink>
+            <NavLink to="/specialization" className="nav-link text-white" onClick={closeMenu}>Specialization</NavLink>
+            <NavLink to="/achievements" className="nav-link text-white" onClick={closeMenu}>Achievements</NavLink>
+            <NavLink to="/education" className="nav-link text-white" onClick={closeMenu}>Education</NavLink>
+            <NavLink to="/awards" className="nav-link text-white" onClick={closeMenu}>Awards</NavLink>
             <NavLink to="/contact" className="nav-link text-white" onClick={closeMenu}>Contact</NavLink>
             {user ? (
               <button onClick={logout} className="btn ms-2" aria-label="Logout">

@@ -156,7 +156,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
   padding-top: var(--nav-height);
-  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 #root {
@@ -466,6 +471,8 @@ body {
 .hero-profile-card {
   text-align: center;
   padding: 28px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .hero-profile-image {
@@ -503,6 +510,7 @@ body {
   color: var(--text-secondary);
   margin: 0;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 
 .hero-section-card {
@@ -707,6 +715,16 @@ body {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.project-preview-desc {
+  width: 100%;
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
 }
 
 .project-preview-content .project-preview-title {
@@ -1680,6 +1698,32 @@ html {
     padding: 10px 12px !important;
   }
 
+  .navbar .nav-links {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .section-page-item {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .section-page-content,
+  .section-page-image {
+    width: 100%;
+  }
+
+  .section-page-image {
+    max-height: 240px;
+  }
+
+  .about-section-link {
+    width: 100%;
+    margin-top: 10px !important;
+  }
+
   .navbar .btn {
     width: 100%;
     margin-left: 0 !important;
@@ -1849,14 +1893,68 @@ html {
     padding-right: 14px !important;
   }
 
+  .navbar .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
   .glass {
     padding: 16px;
     border-radius: 14px;
   }
 
   .hero-three-column {
-    padding: 18px 0 30px;
+    padding: 16px 0 28px;
     gap: 14px;
+  }
+
+  .hero-profile-card {
+    padding: 20px;
+  }
+
+  .hero-profile-image {
+    width: 140px;
+    height: 140px;
+    margin-bottom: 16px;
+  }
+
+  .hero-name {
+    font-size: 1.4rem;
+  }
+
+  .hero-bio {
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  .hero-section-card {
+    padding: 18px;
+  }
+
+  .hero-projects-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .project-preview-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .project-preview-image {
+    width: 100%;
+    height: 120px;
+  }
+
+  .project-preview-content {
+    width: 100%;
+    gap: 6px;
+  }
+
+  .project-preview-link {
+    margin-left: 0;
   }
 
   .skills-grid {
@@ -2037,5 +2135,33 @@ html {
     padding: 6px 8px;
     font-size: 0.86rem;
     white-space: nowrap;
+  }
+
+  .about-page .card,
+  .section-page .card,
+  .section-page-card {
+    border-radius: 14px;
+  }
+
+  .about-page h3,
+  .section-page h3 {
+    font-size: 1.05rem;
+  }
+
+  .section-page-card .card-body {
+    padding: 14px;
+  }
+
+  .about-page .about-section-link,
+  .section-page .btn {
+    width: 100%;
+  }
+
+  .section-page-item {
+    gap: 10px;
+  }
+
+  .section-page-icon {
+    margin-bottom: 0;
   }
 }

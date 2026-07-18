@@ -13,6 +13,7 @@ import {
   setProfileImage as setProfileImageService,
   updateItem,
   uploadFileToStorage,
+  uploadFileToCloudinary,
 } from '../services/adminService';
 import AdminAccessDenied from '../pages/Admin/AdminAccessDenied';
 import AdminProfileTab from '../pages/Admin/AdminProfileTab';
@@ -98,24 +99,38 @@ function Admin() {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [projectImageUrl, setProjectImageUrl] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
+  const [projectTechnologies, setProjectTechnologies] = useState('');
   const [projectLink, setProjectLink] = useState('');
+  const [projectRepoLink, setProjectRepoLink] = useState('');
+  const [projectImageFile, setProjectImageFile] = useState(null);
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [editProjectImageUrl, setEditProjectImageUrl] = useState('');
+  const [editProjectDescription, setEditProjectDescription] = useState('');
+  const [editProjectTechnologies, setEditProjectTechnologies] = useState('');
   const [editProjectLink, setEditProjectLink] = useState('');
+  const [editProjectRepoLink, setEditProjectRepoLink] = useState('');
+  const [editProjectImageFile, setEditProjectImageFile] = useState(null);
 
   const [achievementTitle, setAchievementTitle] = useState('');
   const [achievementYear, setAchievementYear] = useState('');
+  const [achievementDescription, setAchievementDescription] = useState('');
   const [editingAchievementId, setEditingAchievementId] = useState(null);
   const [editAchievementTitle, setEditAchievementTitle] = useState('');
   const [editAchievementYear, setEditAchievementYear] = useState('');
+  const [editAchievementDescription, setEditAchievementDescription] = useState('');
+  const [achievementFile, setAchievementFile] = useState(null);
+  
 
   const [skillName, setSkillName] = useState('');
   const [skillLevel, setSkillLevel] = useState('');
+  const [skillDetails, setSkillDetails] = useState('');
   const [editingSkillId, setEditingSkillId] = useState(null);
   const [editSkillName, setEditSkillName] = useState('');
   const [editSkillLevel, setEditSkillLevel] = useState('');
+  const [editSkillDetails, setEditSkillDetails] = useState('');
 
   const [workExpTitle, setWorkExpTitle] = useState('');
   const [workExpPeriod, setWorkExpPeriod] = useState('');
@@ -130,6 +145,7 @@ function Admin() {
   const [newSpecialization, setNewSpecialization] = useState('');
   const [newEducation, setNewEducation] = useState('');
   const [newAward, setNewAward] = useState('');
+  const [awardFile, setAwardFile] = useState(null);
 
   const [editingSpecId, setEditingSpecId] = useState(null);
   const [editSpecText, setEditSpecText] = useState('');
@@ -372,7 +388,13 @@ function Admin() {
     setUploadProgress(0);
 
     try {
-      const url = await uploadFileToStorage({ storage, file, subpath: target, onProgress: setUploadProgress });
+      // Prefer Cloudinary; fallback to Firebase Storage if Cloudinary not configured
+      let url;
+      try {
+        url = await uploadFileToCloudinary({ file, onProgress: setUploadProgress });
+      } catch (err) {
+        url = await uploadFileToStorage({ storage, file, subpath: target, onProgress: setUploadProgress });
+      }
 
       if (target === 'profile') {
         await saveSettingsDoc(db, 'profile', { imageUrl: url });
@@ -403,6 +425,20 @@ function Admin() {
     }
   };
 
+  const uploadAssetWithFallback = async (file, subpath) => {
+    if (!file) throw new Error('No file selected');
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      return await uploadFileToCloudinary({ file, onProgress: setUploadProgress });
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
   const onSaveHero = async () => {
     if (!heroUrl.trim()) return setStatus('Please provide hero image URL');
     setLoading(true);
@@ -423,17 +459,28 @@ function Admin() {
     if (!title.trim() || !category.trim()) return setStatus('Please fill title and category');
     setLoading(true);
     try {
+      let imageUrl = projectImageUrl.trim() ? normalizeImageUrl(projectImageUrl.trim()) : null;
+      if (projectImageFile) {
+        imageUrl = await uploadAssetWithFallback(projectImageFile, 'projects');
+      }
+
       await addOrderedItem(db, 'projects', {
         title: title.trim(),
         category: category.trim(),
-        description: null,
-        imageUrl: projectImageUrl.trim() ? normalizeImageUrl(projectImageUrl.trim()) : null,
-        link: projectLink.trim() || null,
+        description: projectDescription.trim() || null,
+        technologies: projectTechnologies.trim() || null,
+        imageUrl: imageUrl || null,
+        liveUrl: projectLink.trim() || null,
+        repoUrl: projectRepoLink.trim() || null,
       }, projects.length);
       setTitle('');
       setCategory('');
+      setProjectDescription('');
+      setProjectTechnologies('');
       setProjectImageUrl('');
       setProjectLink('');
+      setProjectRepoLink('');
+      setProjectImageFile(null);
       setStatus('Project added');
     } catch (err) {
       setError(err, 'Failed to add project');
@@ -446,16 +493,23 @@ function Admin() {
     setEditingProjectId(item.id);
     setEditTitle(item.title || '');
     setEditCategory(item.category || '');
+    setEditProjectDescription(item.description || '');
+    setEditProjectTechnologies(item.technologies || '');
     setEditProjectImageUrl(item.imageUrl || '');
-    setEditProjectLink(item.link || '');
+    setEditProjectLink(item.link || item.liveUrl || '');
+    setEditProjectRepoLink(item.repoUrl || '');
+    setEditProjectImageFile(null);
   };
 
   const cancelEditProject = () => {
     setEditingProjectId(null);
     setEditTitle('');
     setEditCategory('');
+    setEditProjectDescription('');
+    setEditProjectTechnologies('');
     setEditProjectImageUrl('');
     setEditProjectLink('');
+    setEditProjectRepoLink('');
   };
 
   const saveEditedProject = async () => {
@@ -464,13 +518,20 @@ function Admin() {
     setLoading(true);
     try {
       const currentProject = projects.find((item) => item.id === editingProjectId);
+      let imageUrl = editProjectImageUrl.trim() ? normalizeImageUrl(editProjectImageUrl.trim()) : currentProject?.imageUrl || null;
+      if (editProjectImageFile) {
+        imageUrl = await uploadAssetWithFallback(editProjectImageFile, 'projects');
+      }
+
       await updateItem(db, 'projects', editingProjectId, {
         title: editTitle.trim(),
         category: editCategory.trim() || null,
-        description: currentProject?.description ?? null,
+        description: editProjectDescription.trim() || null,
+        technologies: editProjectTechnologies.trim() || null,
         order: Number.isInteger(currentProject?.order) ? currentProject.order : null,
-        imageUrl: editProjectImageUrl.trim() ? normalizeImageUrl(editProjectImageUrl.trim()) : null,
-        link: editProjectLink.trim() || null,
+        imageUrl: imageUrl ? imageUrl : null,
+        liveUrl: editProjectLink.trim() || null,
+        repoUrl: editProjectRepoLink.trim() || null,
       });
       cancelEditProject();
       setStatus('Project updated');
@@ -498,12 +559,20 @@ function Admin() {
     if (!achievementTitle.trim()) return setStatus('Please enter achievement title');
     setLoading(true);
     try {
+      let imageUrl = null;
+      if (achievementFile) {
+        imageUrl = await uploadAssetWithFallback(achievementFile, 'achievements');
+      }
       await addOrderedItem(db, 'achievements', {
         title: achievementTitle.trim(),
         year: achievementYear.trim() || null,
+        description: achievementDescription.trim() || null,
+        imageUrl: imageUrl || null,
       }, achievements.length);
       setAchievementTitle('');
       setAchievementYear('');
+      setAchievementDescription('');
+      setAchievementFile(null);
       setStatus('Achievement added');
     } catch (err) {
       setError(err, 'Failed to add achievement');
@@ -516,12 +585,14 @@ function Admin() {
     setEditingAchievementId(item.id);
     setEditAchievementTitle(item.title || '');
     setEditAchievementYear(item.year || '');
+    setEditAchievementDescription(item.description || '');
   };
 
   const cancelEditAchievement = () => {
     setEditingAchievementId(null);
     setEditAchievementTitle('');
     setEditAchievementYear('');
+    setEditAchievementDescription('');
   };
 
   const saveEditedAchievement = async () => {
@@ -531,6 +602,7 @@ function Admin() {
       await updateItem(db, 'achievements', editingAchievementId, {
         title: editAchievementTitle.trim(),
         year: editAchievementYear.trim() || null,
+        description: editAchievementDescription.trim() || null,
       });
       cancelEditAchievement();
       setStatus('Achievement updated');
@@ -576,9 +648,11 @@ function Admin() {
       await addOrderedItem(db, 'skills', {
         name: skillName.trim(),
         level: skillLevel.trim() || null,
+        details: skillDetails.trim() || null,
       }, skills.length);
       setSkillName('');
       setSkillLevel('');
+      setSkillDetails('');
       setStatus('Skill added');
     } catch (err) {
       setError(err, 'Failed to add skill');
@@ -591,12 +665,14 @@ function Admin() {
     setEditingSkillId(item.id);
     setEditSkillName(item.name || '');
     setEditSkillLevel(item.level || '');
+    setEditSkillDetails(item.details || '');
   };
 
   const cancelEditSkill = () => {
     setEditingSkillId(null);
     setEditSkillName('');
     setEditSkillLevel('');
+    setEditSkillDetails('');
   };
 
   const saveEditedSkill = async () => {
@@ -606,6 +682,7 @@ function Admin() {
       await updateItem(db, 'skills', editingSkillId, {
         name: editSkillName.trim(),
         level: editSkillLevel.trim() || null,
+        details: editSkillDetails.trim() || null,
       });
       cancelEditSkill();
       setStatus('Skill updated');
@@ -931,8 +1008,16 @@ function Admin() {
             setCategory={setCategory}
             projectImageUrl={projectImageUrl}
             setProjectImageUrl={setProjectImageUrl}
+            projectDescription={projectDescription}
+            setProjectDescription={setProjectDescription}
+            projectTechnologies={projectTechnologies}
+            setProjectTechnologies={setProjectTechnologies}
+            projectImageFile={projectImageFile}
+            setProjectImageFile={setProjectImageFile}
             projectLink={projectLink}
             setProjectLink={setProjectLink}
+            projectRepoLink={projectRepoLink}
+            setProjectRepoLink={setProjectRepoLink}
             projects={projects}
             loading={loading}
             editingProjectId={editingProjectId}
@@ -940,15 +1025,26 @@ function Admin() {
             setEditTitle={setEditTitle}
             editCategory={editCategory}
             setEditCategory={setEditCategory}
+            editProjectDescription={editProjectDescription}
+            setEditProjectDescription={setEditProjectDescription}
+            editProjectTechnologies={editProjectTechnologies}
+            setEditProjectTechnologies={setEditProjectTechnologies}
             editProjectImageUrl={editProjectImageUrl}
             setEditProjectImageUrl={setEditProjectImageUrl}
+            editProjectImageFile={editProjectImageFile}
+            setEditProjectImageFile={setEditProjectImageFile}
             editProjectLink={editProjectLink}
             setEditProjectLink={setEditProjectLink}
+            editProjectRepoLink={editProjectRepoLink}
+            setEditProjectRepoLink={setEditProjectRepoLink}
             addProject={addProject}
             startEditProject={startEditProject}
             cancelEditProject={cancelEditProject}
             saveEditedProject={saveEditedProject}
             deleteProject={deleteProject}
+            onProjectDragStart={onDragStart}
+            onProjectDragOver={onDragOver}
+            onProjectDrop={onProjectDrop}
           />
         )}
 
@@ -959,6 +1055,8 @@ function Admin() {
             setAchievementTitle={setAchievementTitle}
             achievementYear={achievementYear}
             setAchievementYear={setAchievementYear}
+            achievementDescription={achievementDescription}
+            setAchievementDescription={setAchievementDescription}
             achievements={achievements}
             loading={loading}
             editingAchievementId={editingAchievementId}
@@ -966,6 +1064,8 @@ function Admin() {
             setEditAchievementTitle={setEditAchievementTitle}
             editAchievementYear={editAchievementYear}
             setEditAchievementYear={setEditAchievementYear}
+            editAchievementDescription={editAchievementDescription}
+            setEditAchievementDescription={setEditAchievementDescription}
             addAchievement={addAchievement}
             startEditAchievement={startEditAchievement}
             cancelEditAchievement={cancelEditAchievement}
@@ -974,6 +1074,9 @@ function Admin() {
             onAchievementDragStart={onDragStart}
             onAchievementDragOver={onDragOver}
             onAchievementDrop={onAchievementDrop}
+            achievementFile={achievementFile}
+            setAchievementFile={setAchievementFile}
+            onAchievementFileChange={(file) => setAchievementFile(file)}
           />
         )}
 
@@ -984,6 +1087,8 @@ function Admin() {
             setSkillName={setSkillName}
             skillLevel={skillLevel}
             setSkillLevel={setSkillLevel}
+            skillDetails={skillDetails}
+            setSkillDetails={setSkillDetails}
             skills={skills}
             loading={loading}
             editingSkillId={editingSkillId}
@@ -991,6 +1096,8 @@ function Admin() {
             setEditSkillName={setEditSkillName}
             editSkillLevel={editSkillLevel}
             setEditSkillLevel={setEditSkillLevel}
+            editSkillDetails={editSkillDetails}
+            setEditSkillDetails={setEditSkillDetails}
             addSkill={addSkill}
             startEditSkill={startEditSkill}
             cancelEditSkill={cancelEditSkill}
@@ -1070,6 +1177,27 @@ function Admin() {
             setSpecializationItems={setSpecializationItems}
             setEducationItems={setEducationItems}
             setAwardsItems={setAwardsItems}
+            awardFile={awardFile}
+            setAwardFile={setAwardFile}
+            onAddAward={async () => {
+              if (!newAward.trim()) return setStatus('Please enter text for award');
+              setLoading(true);
+              try {
+                let imageUrl = null;
+                if (awardFile) {
+                  imageUrl = await uploadAssetWithFallback(awardFile, 'awards');
+                }
+                await addOrderedItem(db, 'awards', { text: newAward.trim(), imageUrl: imageUrl }, awardsItems.length);
+                setNewAward('');
+                setAwardFile(null);
+                setStatus('Award added');
+              } catch (err) {
+                setError(err, 'Failed to add award');
+              } finally {
+                setLoading(false);
+                setUploadProgress(0);
+              }
+            }}
           />
         )}
 

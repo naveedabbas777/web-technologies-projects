@@ -4,6 +4,8 @@ export default function AdminAchievementsTab({
   setAchievementTitle,
   achievementYear,
   setAchievementYear,
+  achievementDescription,
+  setAchievementDescription,
   achievements,
   loading,
   editingAchievementId,
@@ -11,6 +13,8 @@ export default function AdminAchievementsTab({
   setEditAchievementTitle,
   editAchievementYear,
   setEditAchievementYear,
+  editAchievementDescription,
+  setEditAchievementDescription,
   addAchievement,
   startEditAchievement,
   cancelEditAchievement,
@@ -19,6 +23,7 @@ export default function AdminAchievementsTab({
   onAchievementDragStart,
   onAchievementDragOver,
   onAchievementDrop,
+  onAchievementFileChange,
 }) {
   return (
     <div className="admin-tab-section admin-achievements-tab">
@@ -36,6 +41,16 @@ export default function AdminAchievementsTab({
           onChange={(e) => setAchievementYear(e.target.value)}
           style={{ width: 120 }}
         />
+      </div>
+      <textarea
+        value={achievementDescription}
+        placeholder="Achievement details (optional)"
+        rows={3}
+        onChange={(e) => setAchievementDescription(e.target.value)}
+        style={{ marginTop: 8 }}
+      />
+      <div className="admin-inline-row" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+        <input type="file" accept="image/*" onChange={(e) => onAchievementFileChange && onAchievementFileChange(e.target.files[0])} />
         <button className="btn" onClick={addAchievement}>
           Add Achievement
         </button>
@@ -76,6 +91,13 @@ export default function AdminAchievementsTab({
                   onChange={(e) => setEditAchievementYear(e.target.value)}
                   style={{ width: 120 }}
                 />
+                <textarea
+                  value={editAchievementDescription}
+                  onChange={(e) => setEditAchievementDescription(e.target.value)}
+                  placeholder="Achievement details"
+                  rows={3}
+                  style={{ width: '100%', marginTop: 8 }}
+                />
                 <div className="admin-inline-actions">
                   <button className="btn" onClick={saveEditedAchievement}>
                     Save
@@ -89,8 +111,16 @@ export default function AdminAchievementsTab({
               <>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <span style={{ opacity: 0.6, marginRight: 8 }}>≡</span>
+                  {a.imageUrl ? (
+                    <img
+                      src={a.imageUrl}
+                      alt={a.title}
+                      style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 6, marginRight: 8 }}
+                    />
+                  ) : null}
                   <div>
                     {a.title} {a.year ? `— ${a.year}` : ''}
+                    {a.description ? <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: 4 }}>{a.description}</div> : null}
                   </div>
                 </div>
                 <div className="admin-inline-actions">
