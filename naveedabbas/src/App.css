@@ -255,12 +255,34 @@ html {
   padding: 4px 8px;
 }
 
+.navbar-toggler-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.navbar-toggler-custom:hover,
+.navbar-toggler-custom:focus-visible {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.navbar-toggler-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: inherit;
+}
+
 .navbar-toggler:focus {
   box-shadow: none !important;
 }
 
 .navbar-toggler-icon {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(241, 245, 249, 0.85)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(241, 245, 249, 0.95)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
 }
 
 .brand {

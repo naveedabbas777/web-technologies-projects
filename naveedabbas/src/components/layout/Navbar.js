@@ -82,9 +82,13 @@ function Navbar({ user, setUser }) {
 
         <BootstrapNavbar.Toggle
           aria-controls="basic-navbar-nav"
-          className="border-0"
+          className="border-0 navbar-toggler-custom"
+          aria-label="Toggle navigation menu"
           style={{ background: 'transparent', color: 'var(--text-primary)' }}
-        />
+        >
+          <span className="navbar-toggler-icon" />
+          <span className="navbar-toggler-text">Menu</span>
+        </BootstrapNavbar.Toggle>
 
         <BootstrapNavbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto nav-links align-items-center">
