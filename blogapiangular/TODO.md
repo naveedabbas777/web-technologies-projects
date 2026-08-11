@@ -1,0 +1,3 @@
+- [x] Edit backend/server.js to remove deprecated MongoDB connection options (useNewUrlParser and useUnifiedTopology)
+- [x] Run the server to verify MongoDB connection works without errors
+- [x] Run the frontend Angular application
