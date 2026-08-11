@@ -1,0 +1,116 @@
+<div class="video-detail-container">
+  <div class="back-button-container">
+    <button class="btn ghost back-button" routerLink="/videos" oneClickNav>
+      <i class="fas fa-arrow-left"></i> Back to Videos
+    </button>
+  </div>
+
+  @if (loadingVideo) {
+    <div class="loading-container">
+      <div class="loading-spinner">Loading video...</div>
+    </div>
+  } @else if (videoErrorMessage) {
+    <div class="error-container">
+      <div class="alert alert-danger">{{ videoErrorMessage }}</div>
+    </div>
+  } @else if (videoPost) {
+    <div class="instagram-single-post-view">
+      <div class="instagram-single-post-media-container">
+        @if (videoPost.videoPath) {
+          <video controls [src]="'http://localhost:8001' + videoPost.videoPath" class="instagram-single-post-video"></video>
+        }
+      </div>
+      <div class="instagram-single-post-details-sidebar">
+        <div class="instagram-single-post-header">
+          <a [routerLink]="['/users', videoPost.author._id, 'profile']" class="post-author-link" oneClickNav>
+            <img [src]="videoPost.author.profilePicture || 'http://localhost:8001/images/default-profile.png'" class="post-author-picture" />
+            <span class="post-author-username">@{{ videoPost.author.username }}</span>
+          </a>
+        </div>
+
+        <div class="video-actions">
+          @if (authService.isAuthenticated()) {
+            <button
+              type="button"
+              class="btn-icon"
+              [class.liked]="hasLiked(videoPost)"
+              (click)="likeVideo(videoPost)">
+              <i class="fas fa-heart"></i>
+            </button>
+            <button
+              type="button"
+              class="btn-icon"
+              [class.disliked]="hasDisliked(videoPost)"
+              (click)="dislikeVideo(videoPost)">
+              <i class="fas fa-thumbs-down"></i>
+            </button>
+          } @else {
+            <span class="btn-icon"><i class="fas fa-heart"></i></span>
+            <span class="btn-icon"><i class="fas fa-thumbs-down"></i></span>
+          }
+        </div>
+
+        <div class="video-stats">
+          <p class="likes-count">
+            <strong>{{ videoPost.likes.length || 0 }} likes</strong>
+            <span> • </span>
+            <strong>{{ videoPost.dislikes.length || 0 }} dislikes</strong>
+          </p>
+        </div>
+
+        <div class="instagram-post-comments-section">
+          <div class="scrollable-comments">
+            <div class="post-caption-full">
+              <span class="caption-author">@{{ videoPost.author.username }}</span>
+              {{ videoPost.description }}
+            </div>
+
+            @if (loadingComments) {
+              <div class="loading-comments">Loading comments...</div>
+            } @else if (comments && comments.length) {
+              @for (comment of comments; track comment._id) {
+                <div class="comment-item">
+                  <div class="comment-header">
+                    <a [routerLink]="['/users', comment.author._id, 'profile']" class="comment-author-link" oneClickNav>
+                      <strong>@{{ comment.author.username }}</strong>
+                    </a>
+                    <span class="comment-timestamp">{{ formatDate(comment.createdAt) }}</span>
+                  </div>
+                  <div class="comment-content">{{ comment.content }}</div>
+                </div>
+              }
+            } @else {
+              <div class="no-comments">No comments yet.</div>
+            }
+          </div>
+
+          @if (authService.isAuthenticated()) {
+            <div class="add-comment-form">
+              @if (commentErrorMessage) {
+                <div class="alert alert-danger comment-error">{{ commentErrorMessage }}</div>
+              }
+              <input
+                type="text"
+                class="comment-input"
+                [(ngModel)]="newComment"
+                placeholder="Add a comment..."
+                (keyup.enter)="addComment()"
+                [disabled]="loadingCommentAdd" />
+              <button
+                class="btn primary post-comment-button"
+                (click)="addComment()"
+                [disabled]="loadingCommentAdd || !newComment.trim()">
+                @if (loadingCommentAdd) {
+                  <span>Posting...</span>
+                } @else {
+                  <span>Post</span>
+                }
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

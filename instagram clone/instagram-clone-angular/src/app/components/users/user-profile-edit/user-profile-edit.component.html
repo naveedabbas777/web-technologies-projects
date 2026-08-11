@@ -1,0 +1,25 @@
+<div class="profile-edit-card">
+  <h1 class="section-title">Edit Profile</h1>
+  <form (ngSubmit)="onSubmit()">
+    <div class="profile-picture-upload-section">
+      @if (profilePicturePreview) {
+        <img [src]="profilePicturePreview" alt="Profile Picture" class="profile-edit-picture" />
+      }
+      <div class="upload-controls">
+        <input type="file" id="profilePicture" accept="image/*" class="input-hidden" (change)="onFileSelected($event)" />
+        <label for="profilePicture" class="btn ghost">Change Picture</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-user icon"></i> Bio</label>
+      <textarea class="textarea" [(ngModel)]="bio" name="bio"></textarea>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn primary">Save Changes</button>
+    </div>
+    @if (errorMessage) {
+      <p class="error-message">{{ errorMessage }}</p>
+    }
+  </form>
+</div>
+

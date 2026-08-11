@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FoodieHub</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">🍔 FoodieHub</div>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#menu">Menu</a>
+      <a href="#orders">Orders</a>
+      <a href="#contact">Contact Us</a>
+    </nav>
+    <form id="searchForm">
+      <input type="text" id="searchInput" placeholder="Search food..."/>
+      <button type="submit">Search</button>
+      <p id="searchError" class="error"></p>
+    </form>
+  </header>
+
+  <!-- Main Section -->
+  <main>
+    <section id="home">
+      <h2>Welcome to FoodieHub!</h2>
+      <p>Order your favorite meals quickly and easily.</p>
+    </section>
+
+    <section id="menu">
+      <h2>Featured Menu Items</h2>
+      <div class="menu-container">
+        <div class="menu-card">
+          <img src="burger.jpg" alt="Spicy Chicken Burger">
+          <h3>Spicy Chicken Burger</h3>
+          <p>Deliciously spicy with a crispy chicken patty!</p>
+          <span>$5.99</span>
+          <button onclick="orderNow(this)">Order Now</button>
+          <p class="confirmation"></p>
+        </div>
+        <div class="menu-card">
+          <img src="pizza.jpg" alt="Cheesy Pepperoni Pizza">
+          <h3>Cheesy Pepperoni Pizza</h3>
+          <p>Classic pepperoni with extra cheese.</p>
+          <span>$8.99</span>
+          <button onclick="orderNow(this)">Order Now</button>
+          <p class="confirmation"></p>
+        </div>
+        <div class="menu-card">
+          <img src="pasta.jpg" alt="Creamy Alfredo Pasta">
+          <h3>Creamy Alfredo Pasta</h3>
+          <p>Smooth Alfredo sauce with fresh herbs.</p>
+          <span>$7.49</span>
+          <button onclick="orderNow(this)">Order Now</button>
+          <p class="confirmation"></p>
+        </div>
+        <div class="menu-card">
+          <img src="wrap.jpg" alt="Grilled Chicken Wrap">
+          <h3>Grilled Chicken Wrap</h3>
+          <p>Healthy wrap with grilled chicken & veggies.</p>
+          <span>$6.49</span>
+          <button onclick="orderNow(this)">Order Now</button>
+          <p class="confirmation"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="orders">
+      <h2>Your Orders</h2>
+      <p>Track your current and past orders here.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Contact Us</h2>
+      <p>Email us at support@foodiehub.com or call 123-456-7890.</p>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Your favorite meals, delivered fast!</p>
+    <div class="social-links">
+      <a href="https://www.facebook.com" target="_blank">Facebook</a> |
+      <a href="https://www.instagram.com" target="_blank">Instagram</a> |
+      <a href="https://www.twitter.com" target="_blank">Twitter</a>
+    </div>
+    <a href="#">Privacy Policy</a>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

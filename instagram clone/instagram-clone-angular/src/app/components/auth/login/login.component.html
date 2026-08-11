@@ -1,0 +1,49 @@
+<div class="navbar hidden"></div>
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="brand auth-brand">
+      <span class="dot"></span> Instagram Clone
+    </div>
+    @if (errors.length > 0) {
+      <div class="alert alert-danger">
+        <ul>
+          @for (error of errors; track error) {
+            <li>{{ error }}</li>
+          }
+        </ul>
+      </div>
+    }
+    @if (errorMessage) {
+      <div class="alert alert-danger">{{ errorMessage }}</div>
+    }
+    <form class="auth-form" (ngSubmit)="onSubmit()">
+      <div class="input-group">
+        <i class="fas fa-envelope icon"></i>
+        <input 
+          class="input" 
+          id="email" 
+          name="email" 
+          type="email" 
+          [(ngModel)]="email"
+          placeholder="Email" 
+          required />
+      </div>
+      <div class="input-group">
+        <i class="fas fa-lock icon"></i>
+        <input 
+          class="input" 
+          id="password" 
+          name="password" 
+          type="password" 
+          [(ngModel)]="password"
+          placeholder="Password" 
+          required />
+      </div>
+      <button class="btn primary auth-button" type="submit">Log In</button>
+    </form>
+    <div class="auth-footer">
+      <p>Don't have an account? <a routerLink="/auth/signup">Sign up</a></p>
+    </div>
+  </div>
+</div>
+

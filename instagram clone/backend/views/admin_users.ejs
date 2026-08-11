@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Instagram Clone - Manage Users</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner container">
+        <div class="brand"><span class="dot"></span> Instagram Clone</div>
+        <div class="nav-links">
+          <% if (!user) { %>
+            <a class="btn primary" href="/auth/login">Login</a>
+            <a class="btn ghost" href="/auth/signup">Signup</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="app-container">
+      <aside class="main-sidebar">
+        <nav>
+          <a class="btn ghost" href="/">Home</a>
+          <a class="btn ghost" href="/videos">Video Feed</a>
+          <% if (user) { %>
+            <a class="btn ghost" href="/users/myposts">My Posts</a>
+            <a class="btn primary" href="/posts/new">New Post</a>
+            <a class="btn primary" href="/videos/new">New Video Post</a>
+            <a class="btn ghost" href="/users/profile">My Profile</a>
+            <% if (user.role === 'admin') { %>
+              <a class="btn ghost sidebar-link active" href="/users">Manage Users</a>
+              <a class="btn ghost sidebar-link" href="/users/posts-management">Manage All Posts</a>
+              <a class="btn ghost sidebar-link" href="/users/comments-management">Manage All Comments</a>
+            <% } %>
+          <% } %>
+        </nav>
+        <% if (user) { %>
+          <div class="logout-button-container">
+            <button class="btn danger" onclick="confirmLogout()">Logout</button>
+          </div>
+        <% } %>
+      </aside>
+      <main class="main-content">
+        <h1 class="section-title">Discover Users</h1>
+        <div class="search-bar-container">
+          <form action="/users" method="GET" class="search-form">
+            <input type="text" class="search-input" name="search" placeholder="Search users..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" />
+            <button type="submit" class="btn primary search-button"><i class="fas fa-search"></i></button>
+          </form>
+        </div>
+        <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+          <div class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+        <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+          <div class="alert alert-success"><%= success_msg %></div>
+        <% } %>
+
+        <% if (users && users.length) { %>
+          <div class="user-grid"> <!-- New class for Instagram-like grid -->
+            <% users.forEach(function(userItem) { %>
+              <div class="user-card"> <!-- New class for each user item -->
+                <a href="/users/<%= userItem._id %>/profile" class="user-profile-link">
+                  <img src="<%= userItem.profilePicture ? userItem.profilePicture : '/images/profile_pictures/default-avatar.png' %>" alt="<%= userItem.username %>" class="profile-picture-thumbnail" />
+                  <h3 class="username-display">@<%= userItem.username %></h3>
+                </a>
+                <p class="user-role-display"><%= userItem.role %></p>
+                <% if (user && !user.equals(userItem._id)) { %>
+                  <div class="user-follow-actions" style="margin-top: 10px;">
+                    <% if (userItem.followers.some(f => f.equals(user))) { %>
+                      <form action="/users/<%= userItem._id %>/unfollow" method="POST" style="display:inline;">
+                        <button type="submit" class="btn danger">Unfollow</button>
+                      </form>
+                    <% } else { %>
+                      <form action="/users/<%= userItem._id %>/follow" method="POST" style="display:inline;">
+                        <button type="submit" class="btn primary">Follow</button>
+                      </form>
+                    <% } %>
+                  </div>
+                <% } %>
+                <div class="user-actions">
+                  <a href="/users/<%= userItem._id %>/posts" class="btn ghost">View Posts</a>
+                  <a href="/users/<%= userItem._id %>/comments" class="btn ghost">View Comments</a>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="card no-posts-message">No users found.</div>
+        <% } %>
+      </main>
+    </div>
+    <script>
+      function confirmLogout() {
+        if (confirm("Are you sure you want to log out?")) {
+          window.location.href = "/auth/logout";
+        }
+      }
+
+      // Debounce function
+      function debounce(func, delay) {
+        let timeoutId;
+        return function(...args) {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            func.apply(this, args);
+          }, delay);
+        };
+      }
+
+      // Real-time search functionality
+      const searchInput = document.querySelector('.search-input');
+      const userGrid = document.querySelector('.user-grid');
+      const currentUserId = '<%= user ? user._id.toString() : "" %>';
+
+      function createUserCardElement(userItem) {
+        const userCard = document.createElement('div');
+        userCard.classList.add('user-card');
+
+        let followActionsHtml = '';
+        if (currentUserId && currentUserId !== userItem._id.toString()) {
+          const isFollowing = userItem.followers.some(f => f === currentUserId);
+          followActionsHtml = `
+            <div class="user-follow-actions" style="margin-top: 10px;">
+              ${isFollowing ? `
+                <form action="/users/${userItem._id}/unfollow" method="POST" style="display:inline;">
+                  <button type="submit" class="btn danger">Unfollow</button>
+                </form>` : `
+                <form action="/users/${userItem._id}/follow" method="POST" style="display:inline;">
+                  <button type="submit" class="btn primary">Follow</button>
+                </form>`}
+            </div>`;
+        }
+
+        userCard.innerHTML = `
+          <a href="/users/${userItem._id}/profile" class="user-profile-link">
+            <img src="${userItem.profilePicture ? userItem.profilePicture : '/images/profile_pictures/default-avatar.png'}" alt="${userItem.username}" class="profile-picture-thumbnail" />
+            <h3 class="username-display">@${userItem.username}</h3>
+          </a>
+          <p class="user-role-display">${userItem.role}</p>
+          ${followActionsHtml}
+          <div class="user-actions">
+            <a href="/users/${userItem._id}/posts" class="btn ghost">View Posts</a>
+            <a href="/users/${userItem._id}/comments" class="btn ghost">View Comments</a>
+          </div>
+        `;
+
+        // Re-attach event listeners for follow/unfollow forms dynamically created
+        userCard.querySelectorAll('.user-follow-actions form').forEach(form => {
+          form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const actionUrl = form.action;
+            const method = form.method;
+
+            try {
+              const response = await fetch(actionUrl, { method: method });
+              if (response.ok) {
+                // Re-fetch users or update UI directly
+                await fetchSearchResults(searchInput.value); // Re-fetch all users to update follow status
+              } else {
+                alert('Failed to update follow status.');
+              }
+            } catch (error) {
+              console.error('Error during follow/unfollow:', error);
+              alert('An error occurred.');
+            }
+          });
+        });
+
+        return userCard;
+      }
+
+      async function fetchSearchResults(query) {
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.classList.add('card', 'loading-indicator');
+        loadingIndicator.textContent = 'Loading users...';
+        userGrid.innerHTML = ''; // Clear current users
+        userGrid.appendChild(loadingIndicator);
+
+        try {
+          const response = await fetch(`/users?search=${encodeURIComponent(query)}`, {
+            headers: { 'Accept': 'application/json' }
+          });
+          const data = await response.json();
+
+          if (data.users && data.users.length > 0) {
+            data.users.forEach(userItem => {
+              userGrid.appendChild(createUserCardElement(userItem));
+            });
+          } else {
+            const noResults = document.createElement('div');
+            noResults.classList.add('card', 'no-posts-message');
+            noResults.textContent = `No users found for "${query}".`;
+            userGrid.appendChild(noResults);
+          }
+        } catch (error) {
+          console.error('Error fetching users:', error);
+          alert('Failed to fetch users.');
+        } finally {
+          if (userGrid.contains(loadingIndicator)) {
+            userGrid.removeChild(loadingIndicator);
+          }
+        }
+      }
+
+      // Attach input event listener to the search input
+      searchInput.addEventListener('input', debounce(async function() {
+        const query = searchInput.value;
+        await fetchSearchResults(query);
+      }, 500)); // 500ms debounce time
+
+      // Initial load of users (if any search query is present from SSR)
+      const initialSearchQuery = '<%= typeof searchQuery !== 'undefined' ? searchQuery : "" %>';
+      if (initialSearchQuery) {
+        fetchSearchResults(initialSearchQuery);
+      }
+
+      // Re-attach event listeners for follow/unfollow forms on initial page load (for SSR content)
+      document.querySelectorAll('.user-follow-actions form').forEach(form => {
+        form.addEventListener('submit', async function(event) {
+          event.preventDefault();
+          const actionUrl = form.action;
+          const method = form.method;
+
+          try {
+            const response = await fetch(actionUrl, { method: method });
+            if (response.ok) {
+              await fetchSearchResults(searchInput.value); // Re-fetch all users to update follow status
+            } else {
+              alert('Failed to update follow status.');
+            }
+          } catch (error) {
+            console.error('Error during follow/unfollow:', error);
+            alert('An error occurred.');
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

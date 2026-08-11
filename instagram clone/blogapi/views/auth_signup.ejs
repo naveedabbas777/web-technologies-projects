@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Signup - Instagram Clone</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  </head>
+  <body>
+    <div class="navbar hidden"></div> <%# Hide navbar on login/signup pages %>
+    <div class="auth-container">
+      <div class="auth-card">
+        <div class="brand auth-brand"><span class="dot"></span> Instagram Clone</div>
+        <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+          <div class="alert alert-danger">
+            <ul>
+              <% errors.forEach(error => { %>
+                <li><%= error.msg %></li>
+              <% }); %>
+            </ul>
+          </div>
+        <% } %>
+        <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+          <div class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+        <form class="auth-form" action="/auth/signup" method="POST">
+          <div class="input-group">
+            <i class="fas fa-user icon"></i>
+            <input class="input" id="username" name="username" value="<%= typeof formData !== 'undefined' ? formData.username : '' %>" placeholder="Username" required />
+          </div>
+          <div class="input-group">
+            <i class="fas fa-envelope icon"></i>
+            <input class="input" id="email" name="email" type="email" value="<%= typeof formData !== 'undefined' ? formData.email : '' %>" placeholder="Email" required />
+          </div>
+          <div class="input-group">
+            <i class="fas fa-lock icon"></i>
+            <input class="input" id="password" name="password" type="password" placeholder="Password" required />
+          </div>
+          <div class="input-group">
+            <i class="fas fa-lock icon"></i>
+            <input class="input" id="password2" name="password2" type="password" placeholder="Confirm Password" required />
+          </div>
+          <button class="btn primary auth-button" type="submit">Sign Up</button>
+        </form>
+        <div class="auth-footer">
+          <p>Have an account? <a href="/auth/login">Log in</a></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+

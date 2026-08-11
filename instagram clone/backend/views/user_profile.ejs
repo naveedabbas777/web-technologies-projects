@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= profileUser.username %>'s Profile - Instagram Clone</title>
+  <link rel="stylesheet" href="/stylesheets/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+</head>
+<body>
+  <div class="navbar">
+    <div class="navbar-inner container">
+      <div class="brand"><span class="dot"></span> Instagram Clone</div>
+      <div class="nav-links">
+        <% if (!user) { %>
+          <a class="btn primary" href="/auth/login">Login</a>
+          <a class="btn ghost" href="/auth/signup">Signup</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="app-container">
+    <aside class="main-sidebar">
+      <nav>
+        <a class="btn ghost" href="/">Home</a>
+        <a class="btn ghost" href="/videos">Video Feed</a>
+        <% if (user) { %>
+          <a class="btn ghost" href="/users/myposts">My Posts</a>
+          <a class="btn primary" href="/posts/new">New Post</a>
+          <a class="btn primary" href="/videos/new">New Video Post</a>
+          <a class="btn ghost active" href="/users/profile">My Profile</a>
+          <% if (role === 'admin') { %>
+            <a class="btn ghost sidebar-link" href="/users">Manage Users</a>
+            <a class="btn ghost sidebar-link" href="/users/posts-management">Manage All Posts</a>
+            <a class="btn ghost sidebar-link" href="/users/comments-management">Manage All Comments</a>
+          <% } %>
+        <% } %>
+      </nav>
+      <% if (user) { %>
+        <div class="logout-button-container">
+          <button class="btn danger" onclick="confirmLogout()">Logout</button>
+        </div>
+      <% } %>
+    </aside>
+    <main class="main-content">
+      <div class="profile-header-section">
+        <img src="<%= profileUser.profilePicture || '/images/default-profile.png' %>" alt="Profile Picture" class="profile-page-picture" />
+        <div class="profile-details">
+          <div class="profile-username-actions">
+            <h1 class="profile-page-username">@<%= profileUser.username %></h1>
+            <% if (user) { %>
+              <% if (user.equals(profileUser._id)) { %>
+                <a href="/users/profile/edit" class="btn ghost"><i class="fas fa-edit"></i> Edit Profile</a>
+              <% } else { %>
+                <% if (profileUser.followers.some(f => f.equals(user))) { %>
+                  <form action="/users/<%= profileUser._id %>/unfollow" method="POST" style="display:inline;">
+                    <button type="submit" class="btn danger"><i class="fas fa-user-minus"></i> Unfollow</button>
+                  </form>
+                <% } else { %>
+                  <form action="/users/<%= profileUser._id %>/follow" method="POST" style="display:inline;">
+                    <button type="submit" class="btn primary"><i class="fas fa-user-plus"></i> Follow</button>
+                  </form>
+                <% } %>
+              <% } %>
+            <% } %>
+          </div>
+          <div class="profile-page-stats">
+            <span><strong><%= (posts ? posts.length : 0) + (videoPosts ? videoPosts.length : 0) %></strong> posts</span>
+            <span><strong><%= profileUser.followers.length %></strong> followers</span>
+            <span><strong><%= profileUser.following.length %></strong> following</span>
+          </div>
+          <p class="profile-page-fullname"><%= profileUser.email %></p> <%# Assuming email as full name for now or add a fullname field to user model%>
+          <% if (profileUser.bio) { %>
+            <p class="profile-page-bio"><%= profileUser.bio %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="search-bar-container" style="margin-bottom: 20px;">
+        <input type="text" class="search-input" placeholder="Search posts or videos..." />
+      </div>
+
+      <div class="profile-tabs">
+        <button class="profile-tab-button active" data-tab="posts"><i class="fas fa-th"></i> Posts</button>
+        <button class="profile-tab-button" data-tab="videos"><i class="fas fa-video"></i> Videos</button>
+        <%# <button class="profile-tab-button" data-tab="saved"><i class="fas fa-bookmark"></i> Saved</button> %>
+      </div>
+
+      <div id="posts" class="profile-tab-content active">
+        <% if (posts && posts.length) { %>
+          <div class="profile-posts-grid">
+            <% posts.forEach(function(post) { %>
+              <div class="profile-post-thumbnail-card">
+                <a href="/posts/<%= post._id %>">
+                  <% if (post.image) { %>
+                    <img src="<%= post.image %>" alt="<%= post.title %>" class="profile-post-thumbnail-image" />
+                  <% } %>
+                  <div class="profile-post-overlay">
+                    <span class="overlay-icon"><i class="fas fa-heart"></i> <%= (post.likes || []).length %></span>
+                    <span class="overlay-icon"><i class="fas fa-comment"></i> <%= post.commentCount || 0 %></span>
+                  </div>
+                </a>
+              </div>
+            <% }) %>
+          </div>
+        <% } else {
+          const userId = profileUser._id.toString();
+        %> 
+          <div class="card no-posts-message">No image posts yet. <% if (user && user._id.toString() === userId) { %><a href="/posts/new">Create one</a>. <% } %></div>
+        <% } %>
+      </div>
+
+      <div id="videos" class="profile-tab-content">
+        <% if (videoPosts && videoPosts.length) { %>
+          <div class="profile-posts-grid">
+            <% videoPosts.forEach(function(videoPost) { %>
+              <div class="profile-post-thumbnail-card">
+                <a href="/videos/<%= videoPost._id %>">
+                  <% if (videoPost.videoPath) { %>
+                    <video src="<%= videoPost.videoPath %>" class="profile-post-thumbnail-video"></video>
+                  <% } %>
+                  <div class="profile-post-overlay">
+                    <span class="overlay-icon"><i class="fas fa-heart"></i> <%= (videoPost.likes || []).length %></span>
+                    <span class="overlay-icon"><i class="fas fa-comment"></i> <%= videoPost.commentCount || 0 %></span>
+                  </div>
+                </a>
+              </div>
+            <% }) %>
+          </div>
+        <% } else {
+          const userId = profileUser._id.toString();
+        %> 
+          <div class="card no-posts-message">No video posts yet. <% if (user && user._id.toString() === userId) { %><a href="/videos/new">Create one</a>. <% } %></div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+  <script>
+    function confirmLogout() {
+      if (confirm("Are you sure you want to log out?")) {
+        window.location.href = "/auth/logout";
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabButtons = document.querySelectorAll('.profile-tab-button');
+      const tabContents = document.querySelectorAll('.profile-tab-content');
+      const postsGrid = document.getElementById('posts').querySelector('.profile-posts-grid');
+      const videosGrid = document.getElementById('videos').querySelector('.profile-posts-grid');
+      const searchInput = document.querySelector('.search-input');
+      const profileUserId = '<%= profileUser._id.toString() %>';
+      const loggedInUserId = '<%= user ? user._id.toString() : "" %>';
+
+      // Debounce function
+      function debounce(func, delay) {
+        let timeoutId;
+        return function(...args) {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            func.apply(this, args);
+          }, delay);
+        };
+      }
+
+      function createPostThumbnailCard(post, type) {
+        const card = document.createElement('div');
+        card.classList.add('profile-post-thumbnail-card');
+        const linkHref = type === 'image' ? `/posts/${post._id}` : `/videos/${post._id}`;
+        const mediaHtml = type === 'image' 
+          ? `<img src="${post.image}" alt="${post.title}" class="profile-post-thumbnail-image" />`
+          : `<video src="${post.videoPath}" class="profile-post-thumbnail-video"></video>`;
+
+        card.innerHTML = `
+          <a href="${linkHref}">
+            ${mediaHtml}
+            <div class="profile-post-overlay">
+              <span class="overlay-icon"><i class="fas fa-heart"></i> ${post.likes ? post.likes.length : 0}</span>
+              <span class="overlay-icon"><i class="fas fa-comment"></i> ${post.commentCount || 0}</span>
+            </div>
+          </a>
+        `;
+        return card;
+      }
+
+      async function fetchFilteredPosts(query) {
+        const postsResponse = await fetch(`/users/${profileUserId}/posts?search=${encodeURIComponent(query)}`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        const postsData = await postsResponse.json();
+
+        postsGrid.innerHTML = '';
+        if (postsData.posts && postsData.posts.length > 0) {
+          postsData.posts.forEach(post => postsGrid.appendChild(createPostThumbnailCard(post, 'image')));
+        } else {
+          const userId = profileUserId;
+          postsGrid.innerHTML = `<div class="card no-posts-message">No image posts found. ${loggedInUserId === userId ? '<a href="/posts/new">Create one</a>.' : ''}</div>`;
+        }
+      }
+
+      async function fetchFilteredVideoPosts(query) {
+        const videosResponse = await fetch(`/users/${profileUserId}/videos?search=${encodeURIComponent(query)}`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        const videosData = await videosResponse.json();
+
+        videosGrid.innerHTML = '';
+        if (videosData.videoPosts && videosData.videoPosts.length > 0) {
+          videosData.videoPosts.forEach(videoPost => videosGrid.appendChild(createPostThumbnailCard(videoPost, 'video')));
+        } else {
+          const userId = profileUserId;
+          videosGrid.innerHTML = `<div class="card no-posts-message">No video posts found. ${loggedInUserId === userId ? '<a href="/videos/new">Create one</a>.' : ''}</div>`;
+        }
+      }
+
+      // Initial load of posts and videos (if search input is already populated)
+      const initialSearchQuery = searchInput.value;
+      if (initialSearchQuery) {
+        const activeTab = document.querySelector('.profile-tab-button.active').dataset.tab;
+        if (activeTab === 'posts') {
+          fetchFilteredPosts(initialSearchQuery);
+        } else if (activeTab === 'videos') {
+          fetchFilteredVideoPosts(initialSearchQuery);
+        }
+      } else {
+        fetchFilteredPosts('');
+        fetchFilteredVideoPosts('');
+      }
+
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const targetTab = button.dataset.tab;
+
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+
+          tabContents.forEach(content => {
+            if (content.id === targetTab) {
+              content.classList.add('active');
+            } else {
+              content.classList.remove('active');
+            }
+          });
+          // Re-run search for the active tab
+          const query = searchInput.value;
+          if (targetTab === 'posts') {
+            fetchFilteredPosts(query);
+          } else if (targetTab === 'videos') {
+            fetchFilteredVideoPosts(query);
+          }
+        });
+      });
+
+      // Handle real-time search input
+      searchInput.addEventListener('input', debounce(async () => {
+        const query = searchInput.value;
+        const activeTab = document.querySelector('.profile-tab-button.active').dataset.tab;
+        if (activeTab === 'posts') {
+          fetchFilteredPosts(query);
+        } else if (activeTab === 'videos') {
+          fetchFilteredVideoPosts(query);
+        }
+      }, 500)); // 500ms debounce
+
+    });
+  </script>
+</body>
+</html>

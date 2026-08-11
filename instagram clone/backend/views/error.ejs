@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Error - Instagram Clone</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  </head>
+  <body>
+    <div class="auth-container">
+      <div class="auth-card">
+        <div class="brand auth-brand"><span class="dot"></span> Instagram Clone</div>
+        <i class="fas fa-exclamation-circle error-icon"></i>
+        <h1 class="section-title"><%= message %></h1>
+        <% if (error.status) { %>
+          <p class="error-status">Status: <%= error.status %></p>
+        <% } %>
+        <% if (error.stack) { %>
+          <pre class="error-stack"><%= error.stack %></pre>
+        <% } %>
+        <a href="/" class="btn primary auth-button" style="margin-top: 20px;">Go to Home</a>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Feed - Instagram Clone</title>
+  <link rel="stylesheet" href="/stylesheets/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+</head>
+<body>
+  <div class="navbar">
+    <div class="navbar-inner container">
+      <div class="brand"><span class="dot"></span> Instagram Clone</div>
+      <div class="nav-links">
+        <% if (!user) { %>
+          <a class="btn primary" href="/auth/login">Login</a>
+          <a class="btn ghost" href="/auth/signup">Signup</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="app-container">
+    <aside class="main-sidebar">
+      <nav>
+        <a class="btn ghost" href="/">Home</a>
+        <a class="btn primary" href="/videos">Video Feed</a>
+        <% if (user) { %>
+          <a class="btn ghost" href="/users/myposts">My Posts</a>
+          <a class="btn primary" href="/posts/new">New Post</a>
+          <a class="btn primary" href="/videos/new">New Video Post</a>
+          <% if (role === 'admin') { %>
+            <a class="btn ghost" href="/users">Manage Users</a>
+            <a class="btn ghost sidebar-link" href="/users/posts-management">Manage All Posts</a>
+            <a class="btn ghost sidebar-link" href="/users/comments-management">Manage All Comments</a>
+          <% } %>
+        <% } %>
+      </nav>
+      <% if (user) { %>
+        <div class="logout-button-container">
+          <button class="btn danger" onclick="confirmLogout()">Logout</button>
+        </div>
+      <% } %>
+    </aside>
+    <main class="main-content" tabindex="0">
+      <h1 class="section-title">Video Feed</h1>
+      <div class="search-bar-container">
+        <form action="/videos" method="GET" class="search-form">
+          <input type="text" class="search-input" name="search" placeholder="Search video posts..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" />
+          <button type="submit" class="btn primary search-button"><i class="fas fa-search"></i></button>
+        </form>
+      </div>
+      <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+        <div class="alert alert-danger"><%= error_msg %></div>
+      <% } %>
+      <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+        <div class="alert alert-success"><%= success_msg %></div>
+      <% } %>
+
+      <% if (videoPosts && videoPosts.length) { %>
+        <div class="video-posts-vertical-feed">
+          <% videoPosts.forEach(function(videoPost) { %>
+            <div class="instagram-post-card"> <!-- Reusing Instagram post card style -->
+              <div class="instagram-post-header">
+                <a href="/users/<%= videoPost.author._id %>/profile" class="post-author-link">
+                  <img src="<%= videoPost.author.profilePicture || '/images/default-profile.png' %>" alt="<%= videoPost.author.username %>" class="post-author-picture" />
+                  <span class="post-author-username">@<%= videoPost.author ? videoPost.author.username : 'Unknown' %></span>
+                </a>
+                <button class="post-options-button"><i class="fas fa-ellipsis-h"></i></button>
+              </div>
+              <% if (videoPost.videoPath) { %>
+                <div class="instagram-post-media-container">
+                  <video controls src="<%= videoPost.videoPath %>" class="instagram-post-video"></video>
+                </div>
+              <% } %>
+              <div class="instagram-post-actions">
+                <% if (user) { %>
+                  <form class="like-form" action="/videos/<%= videoPost._id %>/like" method="POST" style="display:inline;">
+                    <button type="submit" class="btn-icon <%= (videoPost.likes || []).some(like => like.equals(user)) ? 'liked' : '' %>">
+                      <i class="fas fa-heart"></i>
+                    </button>
+                  </form>
+                <% } else { %>
+                  <span class="btn-icon"><i class="fas fa-heart"></i></span>
+                <% } %>
+                <a href="/videos/<%= videoPost._id %>" class="btn-icon comment-button">
+                  <i class="fas fa-comment"></i>
+                </a>
+                <button class="btn-icon share-button"><i class="fas fa-paper-plane"></i></button>
+              </div>
+              <div class="instagram-post-details">
+                <p class="likes-count"><strong><%= (videoPost.likes || []).length %> likes</strong></p>
+                <p class="post-caption">
+                  <span class="caption-author">@<%= videoPost.author ? videoPost.author.username : 'Unknown' %></span>
+                  <%= videoPost.description %>
+                </p>
+                <a href="/videos/<%= videoPost._id %>" class="view-comments-link">View all <%= videoPost.commentCount || 0 %> comments</a>
+                <p class="post-timestamp"><%= new Date(videoPost.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="card no-posts-message">No video posts yet. Be the first to <a href="/videos/new">create one</a>.</div>
+      <% } %>
+    </main>
+  </div>
+
+  <script>
+    function confirmLogout() {
+      if (confirm("Are you sure you want to log out?")) {
+        window.location.href = "/auth/logout";
+      }
+    }
+
+    let currentPage = parseInt('<%= currentPage || 1 %>');
+    let totalPages = parseInt('<%= totalPages || 1 %>');
+    const loggedInUserId = '<%= user ? user._id.toString() : "" %>';
+    const currentSearchQuery = '<%= searchQuery || "" %>'; // Get current search query from EJS
+
+    console.log('Video Feed - Initial currentPage:', currentPage);
+    console.log('Video Feed - Initial totalPages:', totalPages);
+    console.log('Video Feed - LoggedInUserId:', loggedInUserId);
+    console.log('Video Feed - Initial Search Query:', currentSearchQuery);
+
+    const videoPostsFeed = document.querySelector('.video-posts-vertical-feed');
+    const searchInput = document.querySelector('.search-input');
+    let loadingVideoPosts = false;
+
+    // Debounce function
+    function debounce(func, delay) {
+      let timeoutId;
+      return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          func.apply(this, args);
+        }, delay);
+      };
+    }
+
+    function createVideoPostElement(videoPost) {
+      const videoPostElement = document.createElement('div');
+      videoPostElement.classList.add('instagram-post-card'); // Use Instagram post card style for consistency
+
+      let likeFormsHtml = '';
+      if (loggedInUserId) {
+        const isLiked = (videoPost.likes || []).some(like => like.toString() === loggedInUserId);
+        
+        likeFormsHtml = `
+          <form class="like-form" action="/videos/${videoPost._id}/like" method="POST" style="display:inline;">
+            <button type="submit" class="btn-icon ${isLiked ? 'liked' : ''}">
+              <i class="fas fa-heart"></i>
+            </button>
+          </form>
+        `;
+      } else {
+        likeFormsHtml = `
+          <span class="btn-icon"><i class="fas fa-heart"></i></span>
+        `;
+      }
+
+      videoPostElement.innerHTML = `
+        <div class="instagram-post-header">
+          <a href="/users/${videoPost.author._id}/profile" class="post-author-link">
+            <img src="${videoPost.author.profilePicture || '/images/default-profile.png'}" alt="${videoPost.author.username}" class="post-author-picture" />
+            <span class="post-author-username">@${videoPost.author ? videoPost.author.username : 'Unknown'}</span>
+          </a>
+          <button class="post-options-button"><i class="fas fa-ellipsis-h"></i></button>
+        </div>
+        ${videoPost.videoPath ? `
+          <div class="instagram-post-media-container">
+            <video controls src="${videoPost.videoPath}" class="instagram-post-video"></video>
+          </div>` : ''}
+        <div class="instagram-post-actions">
+          ${likeFormsHtml}
+          <a href="/videos/${videoPost._id}" class="btn-icon comment-button">
+            <i class="fas fa-comment"></i>
+          </a>
+          <button class="btn-icon share-button"><i class="fas fa-paper-plane"></i></button>
+        </div>
+        <div class="instagram-post-details">
+          <p class="likes-count"><strong>${(videoPost.likes || []).length} likes</strong></p>
+          <p class="post-caption">
+            <span class="caption-author">@${videoPost.author ? videoPost.author.username : 'Unknown'}</span>
+            ${videoPost.description}
+          </p>
+          <a href="/videos/${videoPost._id}" class="view-comments-link">View all ${videoPost.commentCount || 0} comments</a>
+          <p class="post-timestamp">${new Date(videoPost.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        </div>
+      `;
+
+      videoPostElement.querySelectorAll('.like-form').forEach(form => {
+        form.addEventListener('submit', async function(event) {
+          event.preventDefault();
+
+          const action = form.action;
+          const method = form.method;
+
+          try {
+            const response = await fetch(action, {
+              method: method,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              },
+              body: JSON.stringify({})
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              const likeButton = form.querySelector('.btn-icon');
+              const likesCountElement = form.closest('.instagram-post-details').querySelector('.likes-count strong');
+              
+              if (likeButton && likesCountElement) {
+                likeButton.classList.toggle('liked', result.isLiked); // Toggle 'liked' class based on response
+                likesCountElement.textContent = result.likes; // Update likes count
+              }
+            } else {
+              console.error('Failed to update like status.');
+              alert('Failed to update like status.');
+            }
+          } catch (error) {
+            console.error('Error during like operation:', error);
+            alert('An error occurred.');
+          }
+        });
+      });
+      
+      return videoPostElement;
+    }
+
+    async function fetchVideoPosts(page, query) {
+      console.log('fetchVideoPosts called. Page:', page, 'Query:', query);
+      loadingVideoPosts = true;
+      
+      const url = query ? `/videos/?page=${page}&limit=10&search=${encodeURIComponent(query)}` : `/videos/?page=${page}&limit=10`;
+      
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching video posts:', error);
+        return { videoPosts: [], totalPages: currentPage }; // Return empty and current page to stop loading
+      } finally {
+        loadingVideoPosts = false;
+      }
+    }
+
+    async function loadMoreVideoPosts() {
+      console.log('loadMoreVideoPosts called. loadingVideoPosts:', loadingVideoPosts, 'currentPage:', currentPage, 'totalPages:', totalPages);
+      if (loadingVideoPosts || currentPage >= totalPages) {
+        console.log('Video Feed - Not loading: either already loading, or no more pages.');
+        return;
+      }
+
+      currentPage++;
+
+      const loadingIndicator = document.createElement('div');
+      loadingIndicator.classList.add('card', 'loading-indicator');
+      loadingIndicator.textContent = 'Loading more video posts...';
+      videoPostsFeed.appendChild(loadingIndicator);
+
+      try {
+        const data = await fetchVideoPosts(currentPage, searchInput.value);
+
+        console.log('Video Feed - Fetched data for page', currentPage, ':', data);
+
+        if (data.videoPosts && data.videoPosts.length > 0) {
+          data.videoPosts.forEach(videoPost => {
+            videoPostsFeed.appendChild(createVideoPostElement(videoPost));
+          });
+        } else {
+          const noMoreVideoPosts = document.createElement('div');
+          noMoreVideoPosts.classList.add('card', 'no-more-posts');
+          noMoreVideoPosts.textContent = 'No more video posts to load.';
+          videoPostsFeed.appendChild(noMoreVideoPosts);
+          totalPages = currentPage;
+          console.log('Video Feed - No more posts found, updated totalPages to:', totalPages);
+        }
+      } catch (error) {
+        console.error('Video Feed - Error loading more video posts:', error);
+      } finally {
+        if (videoPostsFeed.contains(loadingIndicator)) {
+          videoPostsFeed.removeChild(loadingIndicator);
+        }
+      }
+    }
+
+    // Function to handle search and reset pagination
+    async function handleSearch(query) {
+      console.log('Handling search for query:', query);
+      videoPostsFeed.innerHTML = ''; // Clear current posts
+      currentPage = 0; // Reset currentPage to 0 so loadMoreVideoPosts increments to 1
+      totalPages = 1; // Reset totalPages to allow initial load
+
+      const loadingIndicator = document.createElement('div');
+      loadingIndicator.classList.add('card', 'loading-indicator');
+      loadingIndicator.textContent = query ? 'Searching video posts...' : 'Loading video posts...';
+      videoPostsFeed.appendChild(loadingIndicator);
+
+      try {
+        const data = await fetchVideoPosts(1, query); // Fetch first page of search results
+        
+        if (data.videoPosts && data.videoPosts.length > 0) {
+          data.videoPosts.forEach(videoPost => {
+            videoPostsFeed.appendChild(createVideoPostElement(videoPost));
+          });
+          currentPage = 1;
+          totalPages = data.totalPages;
+        } else {
+          const noResults = document.createElement('div');
+          noResults.classList.add('card', 'no-posts-message');
+          noResults.textContent = query ? `No video posts found for "${query}".` : 'No video posts yet. Be the first to <a href="/videos/new">create one</a>.';
+          videoPostsFeed.appendChild(noResults);
+          currentPage = 1; // Ensure currentPage is at least 1 even if no results
+          totalPages = 1;
+        }
+      } catch (error) {
+        console.error('Error during search operation:', error);
+        alert('An error occurred during search.');
+      } finally {
+        if (videoPostsFeed.contains(loadingIndicator)) {
+          videoPostsFeed.removeChild(loadingIndicator);
+        }
+      }
+    }
+
+    // Attach input event listener to the search input
+    searchInput.addEventListener('input', debounce(async function() {
+      const query = searchInput.value;
+      await handleSearch(query);
+    }, 500)); // 500ms debounce time
+
+    // Initial load based on currentSearchQuery from SSR
+    if (currentSearchQuery) {
+      handleSearch(currentSearchQuery);
+    } else {
+      // If no search query, load initial posts for infinite scroll
+      loadMoreVideoPosts();
+    }
+
+    window.addEventListener('scroll', () => {
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      if (scrollTop + clientHeight >= scrollHeight - 100) { // 100px from bottom
+        loadMoreVideoPosts();
+      }
+    });
+  </script>
+</body>
+</html>

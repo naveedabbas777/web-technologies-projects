@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title><%= post.title %> - Instagram Clone</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner container">
+        <div class="brand"><span class="dot"></span> Instagram Clone</div>
+        <div class="nav-links">
+          <% if (!user) { %>
+            <a class="btn primary" href="/auth/login">Login</a>
+            <a class="btn ghost" href="/auth/signup">Signup</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="app-container">
+      <aside class="main-sidebar">
+        <nav>
+          <a class="btn ghost" href="/">Home</a>
+          <a class="btn ghost" href="/videos">Video Feed</a>
+          <% if (user) { %>
+            <a class="btn ghost" href="/users/myposts">My Posts</a>
+            <a class="btn primary" href="/posts/new">New Post</a>
+            <a class="btn primary" href="/videos/new">New Video Post</a>
+            <a class="btn ghost" href="/users/profile">My Profile</a>
+            <% if (role === 'admin') { %>
+              <a class="btn ghost" href="/users">Manage Users</a>
+            <% } %>
+          <% } %>
+        </nav>
+        <% if (user) { %>
+          <div class="logout-button-container">
+            <button class="btn danger" onclick="confirmLogout()">Logout</button>
+          </div>
+        <% } %>
+      </aside>
+      <main class="main-content">
+      <div class="instagram-single-post-view"> <!-- New wrapper for single post -->
+        <div class="instagram-single-post-media-container">
+          <% if (post.image) { %>
+            <img src="<%= post.image %>" alt="<%= post.title %>" class="instagram-single-post-image" />
+          <% } else if (post.videoPath) { %>
+            <video controls src="<%= post.videoPath %>" class="instagram-single-post-video"></video>
+          <% } %>
+        </div>
+        <div class="instagram-single-post-details-sidebar">
+          <div class="instagram-single-post-header">
+            <a href="/users/<%= post.author._id %>/profile" class="post-author-link">
+              <img src="<%= post.author.profilePicture || '/images/default-profile.png' %>" alt="<%= post.author.username %>" class="post-author-picture" />
+              <span class="post-author-username">@<%= post.author ? post.author.username : 'Unknown' %></span>
+            </a>
+            <button class="post-options-button"><i class="fas fa-ellipsis-h"></i></button>
+          </div>
+          <div class="instagram-post-comments-section">
+            <div class="scrollable-comments">
+              <div class="post-caption-full">
+                <span class="caption-author">@<%= post.author ? post.author.username : 'Unknown' %></span>
+                <%= post.caption %>
+              </div>
+              <% if (comments && comments.length) { %>
+                <% comments.forEach(function(comment) { %>
+                  <div class="instagram-comment-item">
+                    <a href="/users/<%= comment.author._id %>/profile" class="comment-author-link">
+                      <img src="<%= comment.author.profilePicture || '/images/default-profile.png' %>" alt="<%= comment.author.username %>" class="comment-author-picture" />
+                      <span class="comment-author-username">@<%= comment.author ? comment.author.username : 'Unknown' %></span>
+                    </a>
+                    <span class="comment-content"><%= comment.content %></span>
+                    <span class="comment-timestamp"><%= new Date(comment.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                    <% if (user && comment.author && comment.author._id.toString() === user.toString()) { %>
+                      <form action="/comments/<%= comment._id %>/delete" method="POST" style="display:inline;">
+                        <button type="submit" class="btn-icon delete-comment-button"><i class="fas fa-times"></i></button>
+                      </form>
+                    <% } %>
+                  </div>
+                <% }) %>
+              <% } else { %>
+                <div class="no-comments-message">No comments yet.</div>
+              <% } %>
+            </div>
+            <div class="instagram-single-post-actions-and-add-comment">
+              <div class="instagram-post-actions">
+                <% if (user) { %>
+                  <form class="like-form" action="/posts/<%= post._id %>/like" method="POST" style="display:inline;">
+                    <button type="submit" class="btn-icon <%= (post.likes || []).some(like => like.equals(user)) ? 'liked' : '' %>">
+                      <i class="fas fa-heart"></i>
+                    </button>
+                  </form>
+                <% } else { %>
+                  <span class="btn-icon"><i class="fas fa-heart"></i></span>
+                <% } %>
+                <a href="/posts/<%= post._id %>" class="btn-icon comment-button">
+                  <i class="fas fa-comment"></i>
+                </a>
+                <button class="btn-icon share-button"><i class="fas fa-paper-plane"></i></button>
+              </div>
+              <p class="likes-count"><strong><%= (post.likes || []).length %> likes</strong></p>
+              <p class="post-timestamp"><%= new Date(post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+              <% if (user) { %>
+                <div id="commentForm" class="add-comment-form">
+                  <form action="/comments/image/<%= post._id %>" method="POST">
+                    <input type="text" class="comment-input" name="content" placeholder="Add a comment...">
+                    <button class="btn primary post-comment-button" type="submit">Post</button>
+                  </form>
+                </div>
+              <% } else { %>
+                <div class="add-comment-message">Please <a href="/auth/login">login</a> to add a comment.</div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      function confirmLogout() {
+        if (confirm("Are you sure you want to log out?")) {
+          window.location.href = "/auth/logout";
+        }
+      }
+    </script>
+  </body>
+</html>
+
+

@@ -1,0 +1,18 @@
+/* Navbar component styles moved from global styles.css */
+.navbar {
+	position: sticky; top: 0; z-index: 10;
+	backdrop-filter: saturate(160%) blur(8px);
+	background: rgba(15,23,42,0.6);
+	border-bottom: 1px solid var(--border);
+}
+.navbar-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .3px; font-size: 24px; }
+.brand .dot { width: 12px; height: 12px; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--primary)); display: inline-block; }
+.nav-links a, .nav-links button { margin-left: 12px; }
+.nav-links {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.navbar.hidden { display: none; }
+

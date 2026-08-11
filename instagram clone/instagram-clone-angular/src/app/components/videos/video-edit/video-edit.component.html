@@ -1,0 +1,26 @@
+@if (videoPost) {
+  <div class="create-edit-post-card">
+    <h1 class="section-title">Edit Video Post</h1>
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" class="input" [(ngModel)]="title" name="title" required />
+      </div>
+      <div class="form-group">
+        <label>Video</label>
+        <input type="file" accept="video/*" (change)="onFileSelected($event)" />
+        @if (videoPost.videoPath) {
+          <video controls [src]="'http://localhost:8001' + videoPost.videoPath" class="current-video-preview"></video>
+        }
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea class="textarea" [(ngModel)]="description" name="description" required></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Update Video Post</button>
+      </div>
+    </form>
+  </div>
+}
+

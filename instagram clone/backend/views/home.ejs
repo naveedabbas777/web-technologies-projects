@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Instagram Clone</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner container">
+        <div class="brand"><span class="dot"></span> Instagram Clone</div>
+        <div class="nav-links">
+          <% if (!user) { %> <%# Only show login/signup if not logged in in the top nav %>
+            <a class="btn primary" href="/auth/login">Login</a>
+            <a class="btn ghost" href="/auth/signup">Signup</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="app-container"> <%# New app container for sidebar layout %>
+      <% if (role === 'admin') { %>
+      <aside class="main-sidebar">
+        <nav>
+          <a class="btn ghost" href="/users">Manage Users</a>
+          <a class="btn ghost" href="/users/posts-management">Manage All Posts</a>
+          <a class="btn ghost" href="/users/comments-management">Manage All Comments</a>
+        </nav>
+        <div class="logout-button-container">
+          <button class="btn danger" onclick="confirmLogout()">Logout</button>
+        </div>
+      </aside>
+      <% } %>
+      <main class="main-content" tabindex="0"> <%# Main content wraps the rest of the page %>
+        <h1 class="section-title">Latest posts</h1>
+        <div class="feed-switch-container">
+          <a href="/?feed=all" class="btn <%= feedType === 'all' ? 'primary' : 'ghost' %>">All Posts</a>
+          <% if (user) { %>
+            <a href="/?feed=following" class="btn <%= feedType === 'following' ? 'primary' : 'ghost' %>">Following</a>
+          <% } %>
+        </div>
+        <div class="search-bar-container">
+          <form action="/" method="GET" class="search-form">
+            <input type="text" class="search-input" name="search" placeholder="Search posts..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" />
+            <button type="submit" class="btn primary search-button"><i class="fas fa-search"></i></button>
+          </form>
+        </div>
+        <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+          <div class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+        <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+          <div class="alert alert-success"><%= success_msg %></div>
+        <% } %>
+        <% if (posts && posts.length) { %>
+          <div class="posts-vertical-feed">
+            <% posts.forEach(function(post) { %>
+              <div class="instagram-post-card"> <!-- New class for Instagram-like posts -->
+                <div class="instagram-post-header">
+                  <a href="/users/<%= post.author._id %>/profile" class="post-author-link">
+                    <img src="<%= post.author.profilePicture || '/images/default-profile.png' %>" alt="<%= post.author.username %>" class="post-author-picture" />
+                    <span class="post-author-username">@<%= post.author ? post.author.username : 'Unknown' %></span>
+                  </a>
+                  <button class="post-options-button"><i class="fas fa-ellipsis-h"></i></button>
+                </div>
+                <h4 class="instagram-post-title"><a href="/posts/<%= post._id %>"><%= post.title %></a></h4>
+                <% if (post.image) { %>
+                  <div class="instagram-post-media-container">
+                    <img src="<%= post.image %>" alt="<%= post.title %>" class="instagram-post-image" />
+                  </div>
+                <% } %>
+                <p class="instagram-post-description">
+                  <%= post.caption %>
+                </p>
+                <div class="instagram-post-actions">
+                  <% if (user) { %>
+                    <form class="like-form" action="/posts/<%= post._id %>/like" method="POST" style="display:inline;">
+                      <button type="submit" class="btn-icon <%= (post.likes || []).some(like => like.equals(user)) ? 'liked' : '' %>">
+                        <i class="fas fa-heart"></i>
+                      </button>
+                    </form>
+                  <% } else { %>
+                    <span class="btn-icon"><i class="fas fa-heart"></i></span>
+                  <% } %>
+                  <a href="/posts/<%= post._id %>" class="btn-icon comment-button">
+                    <i class="fas fa-comment"></i>
+                  </a>
+                  <button class="btn-icon share-button"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div class="instagram-post-details">
+                  <p class="likes-count"><strong><%= (post.likes || []).length %> likes</strong></p>
+                  <a href="/posts/<%= post._id %>" class="view-comments-link">View all <%= post.commentCount || 0 %> comments</a>
+                  <p class="post-timestamp"><%= new Date(post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="card no-posts-message">No posts yet. Be the first to <a href="/posts/new">create one</a>.</div>
+        <% } %>
+      </main>
+    </div>
+    <script>
+      function confirmLogout() {
+        if (confirm("Are you sure you want to log out?")) {
+          window.location.href = "/auth/logout";
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        // Initialize from EJS variables.
+        let currentPage = parseInt('<%= currentPage || 1 %>');
+        let totalPages = parseInt('<%= totalPages || 1 %>');
+        const loggedInUserId = '<%= user ? user._id.toString() : "" %>';
+        const currentSearchQuery = '<%= searchQuery || "" %>';
+        const currentFeedType = '<%= feedType || "all" %>';
+
+        const postsFeed = document.querySelector('.posts-vertical-feed');
+        const searchInput = document.querySelector('.search-input');
+        let loadingPosts = false;
+
+        // Debounce function
+        function debounce(func, delay) {
+          let timeoutId;
+          return function(...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              func.apply(this, args);
+            }, delay);
+          };
+        }
+
+        // Function to create a post HTML element
+        function createPostElement(post) {
+          const postElement = document.createElement('div');
+          postElement.classList.add('instagram-post-card');
+
+          let likeFormsHtml = '';
+          if (loggedInUserId) {
+            const isLiked = (post.likes || []).some(like => like.toString() === loggedInUserId);
+            
+            likeFormsHtml = `
+              <form class="like-form" action="/posts/${post._id}/like" method="POST" style="display:inline;">
+                <button type="submit" class="btn-icon ${isLiked ? 'liked' : ''}">
+                  <i class="fas fa-heart"></i>
+                </button>
+              </form>
+            `;
+          } else {
+            likeFormsHtml = `
+              <span class="btn-icon"><i class="fas fa-heart"></i></span>
+            `;
+          }
+
+          postElement.innerHTML = `
+            <div class="instagram-post-header">
+              <a href="/users/${post.author._id}/profile" class="post-author-link">
+                <img src="${post.author.profilePicture || '/images/default-profile.png'}" alt="${post.author.username}" class="post-author-picture" />
+                <span class="post-author-username">@${post.author ? post.author.username : 'Unknown'}</span>
+              </a>
+              <button class="post-options-button"><i class="fas fa-ellipsis-h"></i></button>
+            </div>
+            <h4 class="instagram-post-title"><a href="/posts/${post._id}">${post.title}</a></h4>
+            ${post.image ? `
+              <div class="instagram-post-media-container">
+                <img src="${post.image}" alt="${post.title}" class="instagram-post-image" />
+              </div>` : ''}
+            <p class="instagram-post-description">
+              ${post.caption}
+            </p>
+            <div class="instagram-post-actions">
+              ${likeFormsHtml}
+              <a href="/posts/${post._id}" class="btn-icon comment-button">
+                <i class="fas fa-comment"></i>
+              </a>
+              <button class="btn-icon share-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <div class="instagram-post-details">
+              <p class="likes-count"><strong>${(post.likes || []).length} likes</strong></p>
+              
+              <a href="/posts/${post._id}" class="view-comments-link">View all ${post.commentCount || 0} comments</a>
+              <p class="post-timestamp">${new Date(post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            </div>
+          `;
+
+          postElement.querySelectorAll('.like-form').forEach(form => {
+            form.addEventListener('submit', async function(event) {
+              event.preventDefault();
+
+              const action = form.action;
+              const method = form.method;
+
+              try {
+                const response = await fetch(action, {
+                  method: method,
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                  },
+                  body: JSON.stringify({})
+                });
+
+                if (response.ok) {
+                  const result = await response.json();
+                  const likeButton = form.querySelector('.btn-icon');
+                  const likesCountElement = form.closest('.instagram-post-card').querySelector('.likes-count strong');
+                  
+                  if (likeButton && likesCountElement) {
+                    likeButton.classList.toggle('liked', result.isLiked);
+                    likesCountElement.textContent = `${result.likes} likes`;
+                  }
+                } else {
+                  console.error('Failed to update like status.');
+                  alert('Failed to update like status.');
+                }
+              } catch (error) {
+                console.error('Error during like operation:', error);
+                alert('An error occurred.');
+              }
+            });
+          });
+
+          return postElement;
+        }
+
+        async function fetchPosts(page, query, feedType) {
+          loadingPosts = true;
+
+          let url = `/?page=${page}&limit=10&feed=${feedType}`;
+          if (query) {
+            url += `&search=${encodeURIComponent(query)}`;
+          }
+
+          try {
+            const response = await fetch(url, {
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
+            const data = await response.json();
+            return data;
+          } catch (error) {
+            console.error('Error fetching posts:', error);
+            return { posts: [], totalPages: currentPage };
+          } finally {
+            loadingPosts = false;
+          }
+        }
+
+        async function loadMorePosts() {
+          if (loadingPosts || currentPage >= totalPages) {
+            return;
+          }
+
+          currentPage++;
+
+          const loadingIndicator = document.createElement('div');
+          loadingIndicator.classList.add('card', 'loading-indicator');
+          loadingIndicator.textContent = 'Loading more posts...';
+          postsFeed.appendChild(loadingIndicator);
+
+          try {
+            const data = await fetchPosts(currentPage, searchInput.value, currentFeedType);
+
+            if (data.posts && data.posts.length > 0) {
+              data.posts.forEach(post => {
+                postsFeed.appendChild(createPostElement(post));
+              });
+            } else {
+              const noMorePosts = document.createElement('div');
+              noMorePosts.classList.add('card', 'no-more-posts');
+              noMorePosts.textContent = 'No more posts to load.';
+              postsFeed.appendChild(noMorePosts);
+              totalPages = currentPage;
+            }
+          } catch (error) {
+            console.error('Error loading more posts:', error);
+          } finally {
+            if (postsFeed.contains(loadingIndicator)) {
+              postsFeed.removeChild(loadingIndicator);
+            }
+          }
+        }
+
+        async function handleSearch(query) {
+          postsFeed.innerHTML = '';
+          currentPage = 0;
+          totalPages = 1;
+
+          const loadingIndicator = document.createElement('div');
+          loadingIndicator.classList.add('card', 'loading-indicator');
+          loadingIndicator.textContent = query ? 'Searching posts...' : 'Loading posts...';
+          postsFeed.appendChild(loadingIndicator);
+
+          try {
+            const data = await fetchPosts(1, query, currentFeedType);
+            
+            if (data.posts && data.posts.length > 0) {
+              data.posts.forEach(post => {
+                postsFeed.appendChild(createPostElement(post));
+              });
+              currentPage = 1;
+              totalPages = data.totalPages;
+            } else {
+              const noResults = document.createElement('div');
+              noResults.classList.add('card', 'no-posts-message');
+              noResults.textContent = query ? `No posts found for "${query}".` : 'No posts yet. Be the first to <a href="/posts/new">create one</a>.';
+              postsFeed.appendChild(noResults);
+              currentPage = 1;
+              totalPages = 1;
+            }
+          } catch (error) {
+            console.error('Error during search operation:', error);
+            alert('An error occurred during search.');
+          } finally {
+            if (postsFeed.contains(loadingIndicator)) {
+              postsFeed.removeChild(loadingIndicator);
+            }
+          }
+        }
+
+        searchInput.addEventListener('input', debounce(async function() {
+          const query = searchInput.value;
+          // When searching, we should probably just search all posts, so we'll hardcode 'all'
+          window.location.href = `/?feed=${currentFeedType}&search=${encodeURIComponent(query)}`;
+        }, 500));
+
+        // Initial load is handled by server rendering, this is for infinite scroll
+        window.addEventListener('scroll', () => {
+          const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+          if (scrollTop + clientHeight >= scrollHeight - 100) {
+            loadMorePosts();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
+
+

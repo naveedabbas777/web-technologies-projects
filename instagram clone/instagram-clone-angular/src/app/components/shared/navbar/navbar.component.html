@@ -1,0 +1,23 @@
+<div class="navbar-inner container">
+  <div class="brand">
+    <span class="dot"></span> Instagram Clone
+  </div>
+  <div class="nav-links">
+    @if (authService.isAuthenticated()) {
+      <a class="btn" routerLink="/" oneClickNav>Home</a>
+      <a class="btn" routerLink="/videos" oneClickNav>Videos</a>
+      <a class="btn" routerLink="/posts/new" oneClickNav>New Post</a>
+      <a class="btn" routerLink="/videos/new" oneClickNav>New Video</a>
+      <a class="btn" routerLink="/users/profile" oneClickNav>Profile</a>
+
+      <span class="nav-user-info">@{{ authService.getCurrentUser()?.username }} (@{{ authService.userRole() || 'user' }})</span>
+
+      <a class="btn primary" (click)="authService.logout()">Logout</a>
+    } @else {
+      <a class="btn primary" routerLink="/auth/login" oneClickNav>Login</a>
+      <a class="btn ghost" routerLink="/auth/signup" oneClickNav>Signup</a>
+    }
+  </div>
+</div>
+
+

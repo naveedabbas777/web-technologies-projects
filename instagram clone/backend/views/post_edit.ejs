@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Edit Post - Instagram Clone</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner container">
+        <div class="brand"><span class="dot"></span> Instagram Clone</div>
+        <div class="nav-links">
+          <% if (!user) { %>
+            <a class="btn primary" href="/auth/login">Login</a>
+            <a class="btn ghost" href="/auth/signup">Signup</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="app-container">
+      <aside class="main-sidebar">
+        <nav>
+          <a class="btn ghost" href="/">Home</a>
+          <a class="btn ghost" href="/videos">Video Feed</a>
+          <% if (user) { %>
+            <a class="btn ghost" href="/users/myposts">My Posts</a>
+            <a class="btn primary" href="/posts/new">New Post</a>
+            <a class="btn primary" href="/videos/new">New Video Post</a>
+            <a class="btn ghost" href="/users/profile">My Profile</a>
+            <% if (role === 'admin') { %>
+              <a class="btn ghost sidebar-link" href="/users">Manage Users</a>
+              <a class="btn ghost sidebar-link" href="/users/posts-management">Manage All Posts</a>
+              <a class="btn ghost sidebar-link" href="/users/comments-management">Manage All Comments</a>
+            <% } %>
+          <% } %>
+        </nav>
+        <% if (user) { %>
+          <div class="logout-button-container">
+            <button class="btn danger" onclick="confirmLogout()">Logout</button>
+          </div>
+        <% } %>
+      </aside>
+      <main class="main-content">
+        <div class="create-edit-post-card">
+          <h1 class="section-title">Edit Post</h1>
+          <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+            <div class="alert alert-danger">
+              <ul>
+                <% errors.forEach(error => { %>
+                  <li><%= error.msg %></li>
+                <% }); %>
+              </ul>
+            </div>
+          <% } %>
+          <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+            <div class="alert alert-danger"><%= error_msg %></div>
+          <% } %>
+          <form class="form" action="/posts/<%= post._id %>/edit" method="POST" enctype="multipart/form-data">
+            <div class="form-group profile-header-edit">
+              <img src="<%= post.author.profilePicture || '/images/default-profile.png' %>" alt="<%= post.author.username %>" class="post-author-picture-form" />
+              <span class="post-author-username-form">@<%= post.author ? post.author.username : 'Unknown' %></span>
+            </div>
+            <div class="form-group">
+              <label for="title"><i class="fas fa-heading icon"></i> Title</label>
+              <input class="input" id="title" name="title" value="<%= typeof formData !== 'undefined' ? formData.title : post.title %>" placeholder="Post Title" />
+            </div>
+            <div class="form-group">
+              <label for="caption"><i class="fas fa-align-left icon"></i> Caption</label>
+              <textarea class="textarea" id="caption" name="caption" rows="3" placeholder="Write a caption..."><%= typeof formData !== 'undefined' ? formData.caption : post.caption %></textarea>
+            </div>
+            <div class="form-group">
+              <label>Current Image</label>
+              <% if (post.image) { %>
+                <img src="<%= post.image %>" alt="<%= post.title %>" class="current-post-image" />
+              <% } else { %>
+                <p>No image currently uploaded.</p>
+              <% } %>
+              <label for="image"><i class="fas fa-image icon"></i> Upload New Image (optional)</label>
+              <input type="file" class="input" id="image" name="image" accept="image/*" />
+            </div>
+            <div class="form-actions">
+              <button class="btn primary" type="submit"><i class="fas fa-save"></i> Update Post</button>
+              <a href="/posts/<%= post._id %>" class="btn ghost"><i class="fas fa-ban"></i> Cancel</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+    <script>
+      function confirmLogout() {
+        if (confirm("Are you sure you want to log out?")) {
+          window.location.href = "/auth/logout";
+        }
+      }
+    </script>
+  </body>
+</html>

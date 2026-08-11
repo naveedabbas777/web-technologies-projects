@@ -1,0 +1,17 @@
+<h1 class="section-title">My Posts</h1>
+@if (posts && posts.length) {
+  <div class="posts-grid">
+    @for (post of posts; track post._id) {
+      <div class="post-thumbnail-card">
+        <a [routerLink]="['/posts', post._id]">
+          @if (post.image) {
+            <img [src]="'http://localhost:8001' + post.image" class="post-thumbnail-image" />
+          }
+        </a>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="card no-posts-message">No posts yet. <a routerLink="/posts/new">Create one</a>.</div>
+}
+

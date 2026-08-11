@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Video Post - Instagram Clone</title>
+  <link rel="stylesheet" href="/stylesheets/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+</head>
+<body>
+  <div class="navbar">
+    <div class="navbar-inner container">
+      <div class="brand"><span class="dot"></span> Instagram Clone</div>
+      <div class="nav-links">
+        <% if (!user) { %>
+          <a class="btn primary" href="/auth/login">Login</a>
+          <a class="btn ghost" href="/auth/signup">Signup</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="app-container">
+    <aside class="main-sidebar">
+      <nav>
+        <a class="btn ghost" href="/">Home</a>
+        <a class="btn ghost" href="/videos">Video Feed</a>
+        <% if (user) { %>
+          <a class="btn ghost" href="/users/myposts">My Posts</a>
+          <a class="btn primary" href="/posts/new">New Post</a>
+          <a class="btn primary" href="/videos/new">New Video Post</a>
+          <a class="btn ghost" href="/users/profile">My Profile</a>
+          <% if (role === 'admin') { %>
+            <a class="btn ghost sidebar-link" href="/users">Manage Users</a>
+            <a class="btn ghost sidebar-link" href="/users/posts-management">Manage All Posts</a>
+            <a class="btn ghost sidebar-link" href="/users/comments-management">Manage All Comments</a>
+          <% } %>
+        <% } %>
+      </nav>
+      <% if (user) { %>
+        <div class="logout-button-container">
+          <button class="btn danger" onclick="confirmLogout()">Logout</button>
+        </div>
+      <% } %>
+    </aside>
+    <main class="main-content">
+      <div class="create-edit-post-card">
+        <h1 class="section-title">Create New Video Post</h1>
+        <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+          <div class="alert alert-danger">
+            <ul>
+              <% errors.forEach(error => { %>
+                <li><%= error.msg %></li>
+              <% }); %>
+            </ul>
+          </div>
+        <% } %>
+        <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+          <div class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+        <form class="form" action="/videos/new" method="POST" enctype="multipart/form-data">
+          <div class="form-group profile-header-edit">
+            <img src="<%= user.profilePicture || '/images/default-profile.png' %>" alt="<%= user.username %>" class="post-author-picture-form" />
+            <span class="post-author-username-form">@<%= user ? user.username : 'Unknown' %></span>
+          </div>
+          <div class="form-group">
+            <label for="video"><i class="fas fa-video icon"></i> Video File</label>
+            <input type="file" class="input" id="video" name="video" accept="video/*" required />
+          </div>
+          <div class="form-group">
+            <label for="title"><i class="fas fa-heading icon"></i> Title</label>
+            <input class="input" id="title" name="title" value="<%= typeof formData !== 'undefined' ? formData.title : '' %>" placeholder="Video Title" required />
+          </div>
+          <div class="form-group">
+            <label for="description"><i class="fas fa-align-left icon"></i> Description</label>
+            <textarea class="textarea" id="description" name="description" rows="3" placeholder="Add a description..."><%= typeof formData !== 'undefined' ? formData.description : '' %></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn primary" type="submit"><i class="fas fa-plus-circle"></i> Create Video Post</button>
+            <a href="/videos" class="btn ghost"><i class="fas fa-ban"></i> Cancel</a>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script>
+    function confirmLogout() {
+      if (confirm("Are you sure you want to log out?")) {
+        window.location.href = "/auth/logout";
+      }
+    }
+  </script>
+</body>
+</html>

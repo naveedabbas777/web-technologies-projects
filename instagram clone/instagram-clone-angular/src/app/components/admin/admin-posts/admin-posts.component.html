@@ -1,0 +1,62 @@
+<h1 class="section-title">Manage All Posts</h1>
+<div class="search-bar-container">
+  <input 
+    type="text" 
+    class="search-input" 
+    placeholder="Search posts..." 
+    [value]="searchQuery"
+    (input)="onSearchInput($event)" />
+  <button type="button" class="btn primary search-button">
+    <i class="fas fa-search"></i>
+  </button>
+</div>
+
+@if (loading) {
+  <div class="loading-indicator">Loading posts...</div>
+} @else if (posts && posts.length) {
+  <div class="posts-management-grid">
+    @for (post of posts; track post._id) {
+      <div class="admin-post-card">
+        <div class="post-header-admin">
+          <a [routerLink]="['/users', post.author._id, 'profile']" class="post-author-link" oneClickNav>
+            <img 
+              [src]="post.author.profilePicture || 'http://localhost:8001/images/default-profile.png'"
+              [alt]="post.author.username" 
+              class="post-author-picture" />
+            <span class="post-author-username">@{{ post.author.username || 'Unknown' }}</span>
+          </a>
+          <span class="post-title-admin">
+            on
+            @if (post.title) {
+              <a [routerLink]="['/posts', post._id]" oneClickNav>"{{ post.title }}"</a>
+            } @else {
+              No Title
+            }
+          </span>
+        </div>
+        @if (post.image) {
+          <div class="post-media-admin-container">
+            <img [src]="'http://localhost:8001' + post.image" [alt]="post.title" class="post-media-admin-image" />
+          </div>
+        }
+        <div class="post-body-admin">
+          <p class="post-caption-admin">{{ post.caption }}</p>
+        </div>
+        <div class="post-footer-admin">
+          <span class="post-timestamp">{{ formatDate(post.createdAt) }}</span>
+          <div class="post-actions-admin">
+            <a [routerLink]="['/posts', post._id, 'edit']" class="btn ghost small">
+              <i class="fas fa-edit"></i> Edit
+            </a>
+            <button type="button" class="btn danger small" (click)="deletePost(post._id)">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="card no-posts-message">No posts found.</div>
+}
+

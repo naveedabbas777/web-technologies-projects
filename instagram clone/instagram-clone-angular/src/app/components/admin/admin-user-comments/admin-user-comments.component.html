@@ -1,0 +1,35 @@
+<h1 class="section-title">Comments by {{ username || 'User' }}</h1>
+
+@if (loading) {
+  <div class="loading-indicator">Loading comments...</div>
+} @else if (comments && comments.length) {
+  <div class="comments-management-grid">
+    @for (comment of comments; track comment._id) {
+      <div class="admin-comment-card">
+        <div class="comment-header">
+          <a [routerLink]="['/users', comment.author._id, 'profile']" class="comment-author-link">
+            <img 
+              [src]="comment.author.profilePicture || 'http://localhost:8001/images/default-profile.png'"
+              [alt]="comment.author.username" 
+              class="comment-author-picture" />
+            <span class="comment-author-username">@{{ comment.author?.username || 'Unknown' }}</span>
+          </a>
+          <span class="comment-on-post">
+            on
+            <a [routerLink]="getPostLink(comment)">"{{ getPostTitle(comment) }}"</a>
+          </span>
+        </div>
+        <p class="comment-content-display">{{ comment.content }}</p>
+        <div class="comment-footer">
+          <span class="comment-timestamp">{{ formatDate(comment.createdAt) }}</span>
+          <button type="button" class="btn danger small" (click)="deleteComment(comment._id)">
+            <i class="fas fa-trash-alt"></i> Delete
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="card no-posts-message">No comments found for this user.</div>
+}
+

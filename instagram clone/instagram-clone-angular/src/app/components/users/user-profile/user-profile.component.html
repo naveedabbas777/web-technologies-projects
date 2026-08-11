@@ -1,0 +1,153 @@
+@if (errorMessage) {
+  <div class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ errorMessage }}
+  </div>
+}
+
+@if (successMessage) {
+  <div class="alert alert-success">
+    <i class="fas fa-check-circle"></i>
+    {{ successMessage }}
+  </div>
+}
+
+@if (profileUser) {
+  <div class="profile-header-section">
+    <img [src]="profileUser.profilePicture || 'http://localhost:8001/images/default-profile.png'" class="profile-page-picture" />
+    <div class="profile-details">
+      <div class="profile-username-actions">
+        <h1 class="profile-page-username">@{{ profileUser.username }}</h1>
+        @if (authService.isAuthenticated()) {
+          @if (isMyProfile()) {
+            <a routerLink="/users/profile/edit" class="btn ghost"><i class="fas fa-edit"></i> Edit Profile</a>
+          } @else {
+            @if (isFollowing()) {
+              <button class="btn danger" (click)="unfollowUser()" [disabled]="followLoading"
+                      title="Unfollow {{ profileUser.username }}">
+                @if (followLoading) {
+                  <i class="fas fa-spinner fa-spin"></i> Unfollowing...
+                } @else {
+                  <i class="fas fa-user-check"></i> Following
+                }
+              </button>
+            } @else {
+              <button class="btn primary" (click)="followUser()" [disabled]="followLoading"
+                      title="Follow {{ profileUser.username }}">
+                @if (followLoading) {
+                  <i class="fas fa-spinner fa-spin"></i> Following...
+                } @else {
+                  <i class="fas fa-user-plus"></i> Follow
+                }
+              </button>
+            }
+          }
+        }
+      </div>
+      <div class="profile-page-stats">
+        <span><strong>{{ (posts.length || 0) + (videoPosts.length || 0) }}</strong> posts</span>
+        <span (click)="openFollowersModal()" class="clickable"><strong>{{ profileUser.followers?.length || 0 }}</strong> followers</span>
+        <span (click)="openFollowingModal()" class="clickable"><strong>{{ profileUser.following?.length || 0 }}</strong> following</span>
+      </div>
+      <p class="profile-page-fullname">{{ profileUser.email }}</p>
+      @if (profileUser.bio) {
+        <p class="profile-page-bio">{{ profileUser.bio }}</p>
+      }
+    </div>
+  </div>
+
+  <app-followers-modal
+    *ngIf="isModalOpen"
+    [title]="modalTitle"
+    [users]="modalUsers"
+    (closeModal)="onCloseModal()">
+  </app-followers-modal>
+
+  <div class="search-bar-container" style="margin-bottom: 20px;">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search posts or videos..."
+      [value]="searchQuery"
+      (input)="onSearchInput($event)" />
+  </div>
+
+  <div class="profile-tabs">
+    <button class="profile-tab-button" [class.active]="activeTab === 'posts'" (click)="setActiveTab('posts')">
+      <i class="fas fa-th"></i> Posts
+    </button>
+    <button class="profile-tab-button" [class.active]="activeTab === 'videos'" (click)="setActiveTab('videos')">
+      <i class="fas fa-video"></i> Videos
+    </button>
+  </div>
+
+  @if (activeTab === 'posts') {
+    <div class="profile-tab-content active">
+      @if (posts && posts.length) {
+        <div class="profile-posts-grid">
+          @for (post of posts; track post._id) {
+            <div class="profile-post-thumbnail-card">
+              <a [routerLink]="['/posts', post._id]">
+                @if (post.image) {
+                  <img [src]="'http://localhost:8001' + post.image" [alt]="post.title" class="profile-post-thumbnail-image" />
+                }
+                <div class="profile-post-overlay">
+                  <span class="overlay-icon"><i class="fas fa-heart"></i> {{ post.likes.length || 0 }}</span>
+                  <span class="overlay-icon"><i class="fas fa-comment"></i> {{ post.commentCount || 0 }}</span>
+                </div>
+              </a>
+              @if (isMyProfile()) {
+                <div class="post-actions-overlay">
+                  <button class="btn btn-sm btn-info" (click)="editPost(post._id)">Edit</button>
+                  <button class="btn btn-sm btn-danger" (click)="deletePost(post._id)">Delete</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="card no-posts-message">
+          No image posts yet.
+          @if (isMyProfile()) {
+            <a routerLink="/posts/new">Create one</a>.
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (activeTab === 'videos') {
+    <div class="profile-tab-content active">
+      @if (videoPosts && videoPosts.length) {
+        <div class="profile-posts-grid">
+          @for (videoPost of videoPosts; track videoPost._id) {
+            <div class="profile-post-thumbnail-card">
+              <a [routerLink]="['/videos', videoPost._id]">
+                @if (videoPost.videoPath) {
+                  <video [src]="'http://localhost:8001' + videoPost.videoPath" class="profile-post-thumbnail-video"></video>
+                }
+                <div class="profile-post-overlay">
+                  <span class="overlay-icon"><i class="fas fa-heart"></i> {{ videoPost.likes.length || 0 }}</span>
+                  <span class="overlay-icon"><i class="fas fa-comment"></i> {{ videoPost.commentCount || 0 }}</span>
+                </div>
+              </a>
+              @if (isMyProfile()) {
+                <div class="post-actions-overlay">
+                  <button class="btn btn-sm btn-info" (click)="editVideoPost(videoPost._id)">Edit</button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteVideoPost(videoPost._id)">Delete</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="card no-posts-message">
+          No video posts yet.
+          @if (isMyProfile()) {
+            <a routerLink="/videos/new">Create one</a>.
+          }
+        </div>
+      }
+    </div>
+  }
+}

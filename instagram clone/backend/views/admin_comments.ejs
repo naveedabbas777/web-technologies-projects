@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Manage Comments - Instagram Clone</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner container">
+        <div class="brand"><span class="dot"></span> Instagram Clone</div>
+        <div class="nav-links">
+          <% if (!user) { %>
+            <a class="btn primary" href="/auth/login">Login</a>
+            <a class="btn ghost" href="/auth/signup">Signup</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="app-container">
+      <aside class="main-sidebar">
+        <nav>
+          <a class="btn ghost" href="/">Home</a>
+          <a class="btn ghost" href="/videos">Video Feed</a>
+          <% if (user) { %>
+            <a class="btn ghost" href="/users/myposts">My Posts</a>
+            <a class="btn primary" href="/posts/new">New Post</a>
+            <a class="btn primary" href="/videos/new">New Video Post</a>
+            <a class="btn ghost" href="/users/profile">My Profile</a>
+            <% if (role === 'admin') { %>
+              <a class="btn ghost sidebar-link active" href="/users">Manage Users</a>
+              <a class="btn ghost sidebar-link" href="/users/posts-management">Manage All Posts</a>
+              <a class="btn ghost sidebar-link" href="/users/comments-management">Manage All Comments</a>
+            <% } %>
+          <% } %>
+        </nav>
+        <% if (user) { %>
+          <div class="logout-button-container">
+            <button class="btn danger" onclick="confirmLogout()">Logout</button>
+          </div>
+        <% } %>
+      </aside>
+      <main class="main-content">
+        <h1 class="section-title">Manage All Comments</h1>
+        <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+          <div class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+        <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+          <div class="alert alert-success"><%= success_msg %></div>
+        <% } %>
+
+        <% if (comments && comments.length) { %>
+          <div class="comments-management-grid">
+            <% comments.forEach(function(comment) { %>
+              <div class="admin-comment-card">
+                <div class="comment-header">
+                  <a href="/users/<%= comment.author._id %>/profile" class="comment-author-link">
+                    <img src="<%= comment.author.profilePicture || '/images/default-profile.png' %>" alt="<%= comment.author.username %>" class="comment-author-picture" />
+                    <span class="comment-author-username">@<%= comment.author ? comment.author.username : 'Unknown' %></span>
+                  </a>
+                  <span class="comment-on-post">
+                    on
+                    <% if (comment.imagePost) { %>
+                      <a href="/posts/<%= comment.imagePost._id %>">"<%= comment.imagePost.title %>"</a>
+                    <% } else if (comment.videoPost) { %>
+                      <a href="/videos/<%= comment.videoPost._id %>">"<%= comment.videoPost.title %>"</a>
+                    <% } else { %>
+                      Unknown Post
+                    <% } %>
+                  </span>
+                </div>
+                <p class="comment-content-display"><%= comment.content %></p>
+                <div class="comment-footer">
+                  <span class="comment-timestamp"><%= new Date(comment.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                  <form action="/users/comments-management/<%= comment._id %>/delete" method="POST" style="display:inline;">
+                    <button type="submit" class="btn danger small"><i class="fas fa-trash-alt"></i> Delete</button>
+                  </form>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="card no-posts-message">No comments found.</div>
+        <% } %>
+      </main>
+    </div>
+    <script>
+      function confirmLogout() {
+        if (confirm("Are you sure you want to log out?")) {
+          window.location.href = "/auth/logout";
+        }
+      }
+    </script>
+  </body>
+</html>

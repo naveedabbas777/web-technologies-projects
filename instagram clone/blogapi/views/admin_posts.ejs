@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Manage Posts - Instagram Clone</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner container">
+        <div class="brand"><span class="dot"></span> Instagram Clone</div>
+        <div class="nav-links">
+          <% if (!user) { %>
+            <a class="btn primary" href="/auth/login">Login</a>
+            <a class="btn ghost" href="/auth/signup">Signup</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="app-container">
+      <aside class="main-sidebar">
+        <nav>
+          <a class="btn ghost" href="/">Home</a>
+          <a class="btn ghost" href="/videos">Video Feed</a>
+          <% if (user) { %>
+            <a class="btn ghost" href="/users/myposts">My Posts</a>
+            <a class="btn primary" href="/posts/new">New Post</a>
+            <a class="btn primary" href="/videos/new">New Video Post</a>
+            <a class="btn ghost" href="/users/profile">My Profile</a>
+            <% if (role === 'admin') { %>
+              <a class="btn ghost sidebar-link" href="/users">Manage Users</a>
+              <a class="btn ghost sidebar-link active" href="/users/posts-management">Manage All Posts</a>
+              <a class="btn ghost sidebar-link" href="/users/comments-management">Manage All Comments</a>
+            <% } %>
+          <% } %>
+        </nav>
+        <% if (user) { %>
+          <div class="logout-button-container">
+            <button class="btn danger" onclick="confirmLogout()">Logout</button>
+          </div>
+        <% } %>
+      </aside>
+      <main class="main-content">
+        <h1 class="section-title">Manage All Posts</h1>
+        <div class="search-bar-container">
+          <form action="/users/posts-management" method="GET" class="search-form">
+            <input type="text" class="search-input" name="search" placeholder="Search posts..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" />
+            <button type="submit" class="btn primary search-button"><i class="fas fa-search"></i></button>
+          </form>
+        </div>
+        <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+          <div class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+        <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+          <div class="alert alert-success"><%= success_msg %></div>
+        <% } %>
+
+        <% if (posts && posts.length) { %>
+          <div class="posts-management-grid">
+            <% posts.forEach(function(post) { %>
+              <div class="admin-post-card">
+                <div class="post-header-admin">
+                  <a href="/users/<%= post.author._id %>/profile" class="post-author-link">
+                    <img src="<%= post.author.profilePicture || '/images/default-profile.png' %>" alt="<%= post.author.username %>" class="post-author-picture" />
+                    <span class="post-author-username">@<%= post.author ? post.author.username : 'Unknown' %></span>
+                  </a>
+                  <span class="post-title-admin">
+                    on
+                    <% if (post.title) { %>
+                      <a href="/posts/<%= post._id %>">"<%= post.title %>"</a>
+                    <% } else { %>
+                      No Title
+                    <% } %>
+                  </span>
+                </div>
+                <% if (post.image) { %>
+                  <div class="post-media-admin-container">
+                    <img src="<%= post.image %>" alt="<%= post.title %>" class="post-media-admin-image" />
+                  </div>
+                <% } else if (post.videoPath) { %>
+                  <div class="post-media-admin-container">
+                    <video controls src="<%= post.videoPath %>" class="post-media-admin-video"></video>
+                  </div>
+                <% } %>
+                <div class="post-body-admin">
+                  <p class="post-caption-admin"><%= (post.caption || '').split('\n').slice(0, 3).join('\n') %><%= (post.caption || '').split('\n').length > 3 ? '...' : '' %></p>
+                </div>
+                <div class="post-footer-admin">
+                  <span class="post-timestamp"><%= new Date(post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                  <div class="post-actions-admin">
+                    <a href="/posts/<%= post._id %>/edit" class="btn ghost small"><i class="fas fa-edit"></i> Edit</a>
+                    <form action="/users/posts-management/<%= post._id %>/delete" method="POST" style="display:inline;">
+                      <button type="submit" class="btn danger small"><i class="fas fa-trash-alt"></i> Delete</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="card no-posts-message">No posts found.</div>
+        <% } %>
+      </main>
+    </div>
+    <script>
+      function confirmLogout() {
+        if (confirm("Are you sure you want to log out?")) {
+          window.location.href = "/auth/logout";
+        }
+      }
+
+      // Debounce function
+      function debounce(func, delay) {
+        let timeoutId;
+        return function(...args) {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            func.apply(this, args);
+          }, delay);
+        };
+      }
+
+      // Real-time search functionality
+      const searchInput = document.querySelector('.search-input');
+      const postsManagementGrid = document.querySelector('.posts-management-grid');
+
+      function createAdminPostCardElement(post) {
+        const postCard = document.createElement('div');
+        postCard.classList.add('admin-post-card');
+
+        postCard.innerHTML = `
+          <div class="post-header-admin">
+            <a href="/users/${post.author._id}/profile" class="post-author-link">
+              <img src="${post.author.profilePicture || '/images/default-profile.png'}" alt="${post.author.username}" class="post-author-picture" />
+              <span class="post-author-username">@${post.author ? post.author.username : 'Unknown'}</span>
+            </a>
+            <span class="post-title-admin">
+              on
+              ${post.title ? `
+                <a href="/posts/${post._id}">"${post.title}"</a>` : `
+                No Title`}
+            </span>
+          </div>
+          ${post.image ? `
+            <div class="post-media-admin-container">
+              <img src="${post.image}" alt="${post.title}" class="post-media-admin-image" />
+            </div>` : post.videoPath ? `
+            <div class="post-media-admin-container">
+              <video controls src="${post.videoPath}" class="post-media-admin-video"></video>
+            </div>` : ''}
+          <div class="post-body-admin">
+            <p class="post-caption-admin">${(post.caption || '').split('\n').slice(0, 3).join('\n')}${(post.caption || '').split('\n').length > 3 ? '...' : ''}</p>
+          </div>
+          <div class="post-footer-admin">
+            <span class="post-timestamp">${new Date(post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            <div class="post-actions-admin">
+              <a href="/posts/${post._id}/edit" class="btn ghost small"><i class="fas fa-edit"></i> Edit</a>
+              <form action="/users/posts-management/${post._id}/delete" method="POST" style="display:inline;">
+                <button type="submit" class="btn danger small"><i class="fas fa-trash-alt"></i> Delete</button>
+              </form>
+            </div>
+          </div>
+        `;
+        return postCard;
+      }
+
+      async function fetchSearchResults(query) {
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.classList.add('card', 'loading-indicator');
+        loadingIndicator.textContent = 'Loading posts...';
+        postsManagementGrid.innerHTML = ''; // Clear current posts
+        postsManagementGrid.appendChild(loadingIndicator);
+
+        try {
+          const response = await fetch(`/users/posts-management?search=${encodeURIComponent(query)}`, {
+            headers: { 'Accept': 'application/json' }
+          });
+          const data = await response.json();
+
+          if (data.posts && data.posts.length > 0) {
+            data.posts.forEach(post => {
+              postsManagementGrid.appendChild(createAdminPostCardElement(post));
+            });
+          } else {
+            const noResults = document.createElement('div');
+            noResults.classList.add('card', 'no-posts-message');
+            noResults.textContent = `No posts found for "${query}".`;
+            postsManagementGrid.appendChild(noResults);
+          }
+        } catch (error) {
+          console.error('Error fetching posts:', error);
+          alert('Failed to fetch posts.');
+        } finally {
+          if (postsManagementGrid.contains(loadingIndicator)) {
+            postsManagementGrid.removeChild(loadingIndicator);
+          }
+        }
+      }
+
+      // Attach input event listener to the search input
+      searchInput.addEventListener('input', debounce(async function() {
+        const query = searchInput.value;
+        await fetchSearchResults(query);
+      }, 500)); // 500ms debounce time
+
+      // Initial load of posts (if any search query is present from SSR)
+      const initialSearchQuery = '<%= typeof searchQuery !== 'undefined' ? searchQuery : "" %>';
+      if (initialSearchQuery) {
+        fetchSearchResults(initialSearchQuery);
+      }
+    </script>
+  </body>
+</html>

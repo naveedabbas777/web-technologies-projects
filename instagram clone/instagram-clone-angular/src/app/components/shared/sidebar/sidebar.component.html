@@ -1,0 +1,16 @@
+<aside class="main-sidebar" [class.collapsed]="collapsed">
+  <div class="sidebar-top">
+    <button class="toggle-btn" (click)="toggle()">{{ collapsed ? '»' : '«' }}</button>
+  </div>
+
+  @if (authService.isAdmin()) {
+    <nav>
+      <a class="btn ghost" routerLink="/users" routerLinkActive="active"><span class="label">Manage Users</span></a>
+      <a class="btn ghost" routerLink="/users/posts-management" routerLinkActive="active"><span class="label">Manage Posts</span></a>
+      <a class="btn ghost" routerLink="/users/comments-management" routerLinkActive="active"><span class="label">Manage Comments</span></a>
+    </nav>
+
+    
+  }
+</aside>
+

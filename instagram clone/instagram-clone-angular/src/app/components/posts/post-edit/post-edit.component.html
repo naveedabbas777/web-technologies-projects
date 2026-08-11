@@ -1,0 +1,26 @@
+@if (post) {
+  <div class="create-edit-post-card">
+    <h1 class="section-title">Edit Post</h1>
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label><i class="fas fa-heading icon"></i> Title</label>
+        <input type="text" class="input" [(ngModel)]="title" name="title" required />
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-image icon"></i> Image</label>
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+        @if (imagePreview) {
+          <img [src]="imagePreview" alt="Preview" class="current-post-image" />
+        }
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-comment icon"></i> Caption</label>
+        <textarea class="textarea" [(ngModel)]="caption" name="caption" required></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Update Post</button>
+      </div>
+    </form>
+  </div>
+}
+

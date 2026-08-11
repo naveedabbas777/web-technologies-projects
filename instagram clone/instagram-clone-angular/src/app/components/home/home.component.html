@@ -1,0 +1,173 @@
+<h1 class="section-title">Latest posts</h1>
+<div class="search-bar-container">
+  <input
+    type="text"
+    class="search-input"
+    placeholder="Search posts..."
+    [value]="searchQuery"
+    (input)="onSearchInput($event)" />
+  <button type="button" class="btn primary search-button">
+    <i class="fas fa-search"></i>
+  </button>
+</div>
+
+@if (errorMessage) {
+  <div class="alert alert-danger">{{ errorMessage }}</div>
+}
+@if (successMessage) {
+  <div class="alert alert-success">{{ successMessage }}</div>
+}
+
+@if (loadingPosts && posts.length === 0) {
+  <div class="card loading-indicator">Loading posts...</div>
+} @else if (posts.length) {
+  <div class="posts-vertical-feed">
+    @for (post of posts; track post._id) {
+      <div class="instagram-post-card">
+        <div class="instagram-post-header">
+          <a [routerLink]="['/users', post.author._id, 'profile']" class="post-author-link" oneClickNav>
+            <img
+              [src]="post.author.profilePicture || 'http://localhost:8001/images/default-profile.png'"
+              [alt]="post.author.username"
+              class="post-author-picture" />
+            <span class="post-author-username">@{{ post.author.username || 'Unknown' }}</span>
+          </a>
+          <button class="post-options-button"><i class="fas fa-ellipsis-h"></i></button>
+        </div>
+        <h4 class="instagram-post-title">
+          <a [routerLink]="['/posts', post._id]" class="post-title-link">{{ post.title }}</a>
+        </h4>
+        @if (post.image) {
+          <div class="instagram-post-media-container">
+            <img [src]="'http://localhost:8001' + post.image" [alt]="post.title" class="instagram-post-image" />
+          </div>
+        }
+        <p class="instagram-post-description">
+          {{ post.caption }}
+        </p>
+        <div class="instagram-post-actions">
+          @if (authService.isAuthenticated()) {
+            <button
+              type="button"
+              class="btn-icon"
+              [class.liked]="hasLiked(post)"
+              (pointerdown)="tapLike($event, post._id)" (click)="tapLike($event, post._id)">
+              <i class="fas fa-heart"></i>
+            </button>
+            <button
+              type="button"
+              class="btn-icon"
+              [class.disliked]="hasDisliked(post)"
+              (pointerdown)="tapDislike($event, post._id)" (click)="tapDislike($event, post._id)">
+              <i class="fas fa-thumbs-down"></i>
+            </button>
+          } @else {
+            <span class="btn-icon"><i class="fas fa-heart"></i></span>
+            <span class="btn-icon"><i class="fas fa-thumbs-down"></i></span>
+          }
+          <button
+            type="button"
+            class="btn-icon comment-button"
+            [class.active]="isCommentsExpanded(post._id)"
+            (click)="toggleComments(post._id)">
+            <i class="fas fa-comment"></i>
+          </button>
+          <button class="btn-icon share-button"><i class="fas fa-paper-plane"></i></button>
+        </div>
+        <div class="instagram-post-details">
+          <p class="likes-count">
+            <strong>{{ post.likes.length || 0 }} likes</strong>
+            <span> • </span>
+            <strong>{{ post.dislikes.length || 0 }} dislikes</strong>
+          </p>
+          <button
+            type="button"
+            class="view-comments-btn"
+            (click)="toggleComments(post._id)">
+            View all {{ post.commentCount || 0 }} comments
+          </button>
+          <p class="post-timestamp">{{ formatDate(post.createdAt) }}</p>
+        </div>
+
+        <!-- Inline Comments Section -->
+        @if (isCommentsExpanded(post._id)) {
+          <div class="inline-comments-section">
+            @if (isLoadingComments(post._id)) {
+              <div class="loading-comments">Loading comments...</div>
+            } @else if (postComments[post._id] && postComments[post._id].length) {
+              <div class="comments-list">
+                @for (comment of postComments[post._id]; track comment._id) {
+                  <div class="inline-comment-item">
+                    <a [routerLink]="['/users', comment.author._id, 'profile']" class="comment-author-link" oneClickNav>
+                      <img
+                        [src]="comment.author.profilePicture || 'http://localhost:8001/images/default-profile.png'"
+                        [alt]="comment.author.username"
+                        class="comment-author-picture-small" />
+                      <strong>{{ comment.author.username }}</strong>
+                    </a>
+                    <span class="comment-content">{{ comment.content }}</span>
+                    @if (authService.isAuthenticated() && currentUser?._id === comment.author._id) {
+                      <button
+                        type="button"
+                        class="delete-comment-btn"
+                        (click)="deleteComment(post._id, comment._id)">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="no-comments">No comments yet.</div>
+            }
+
+            @if (authService.isAuthenticated()) {
+              <div class="add-comment-form">
+                <input
+                  type="text"
+                  class="comment-input"
+                  [(ngModel)]="newComments[post._id]"
+                  placeholder="Add a comment..."
+                  (keyup.enter)="addComment(post._id)" />
+                <button
+                  type="button"
+                  class="btn primary post-comment-btn"
+                  (click)="addComment(post._id)"
+                  [disabled]="!newComments[post._id]?.trim()">
+                  Post
+                </button>
+              </div>
+            } @else {
+              <div class="login-prompt">
+                <a routerLink="/auth/login" oneClickNav>Login</a> to add a comment.
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+    @if (loadingPosts) {
+      <div class="card loading-indicator">Loading more posts...</div>
+    }
+    @if (!loadingPosts && posts.length > 0 && currentPage >= totalPages) {
+      <div class="card no-posts-message">No more posts to load.</div>
+    }
+  </div>
+}
+@else if (!loadingPosts && !posts.length && searchQuery) {
+  <div class="card no-posts-message">
+    No posts found matching "{{ searchQuery }}".
+  </div>
+}
+@else if (!authService.isAuthenticated()) {
+  <div class="card no-posts-message">
+    <i class="fas fa-sign-in-alt"></i>
+    <h3>Authentication Required</h3>
+    <p>Please <a routerLink="/auth/login">log in</a> to view posts.</p>
+  </div>
+}
+@else if (!loadingPosts && !posts.length) {
+  <div class="card no-posts-message">
+    No posts yet. Be the first to <a routerLink="/posts/new">create one</a>.
+  </div>
+}

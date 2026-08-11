@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>My Posts - Instagram Clone</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner container">
+        <div class="brand"><span class="dot"></span> Instagram Clone</div>
+        <div class="nav-links">
+          <% if (!user) { %>
+            <a class="btn primary" href="/auth/login">Login</a>
+            <a class="btn ghost" href="/auth/signup">Signup</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="app-container">
+      <aside class="main-sidebar">
+        <nav>
+          <a class="btn ghost" href="/">Home</a>
+          <a class="btn ghost" href="/videos">Video Feed</a>
+          <% if (user) { %>
+            <a class="btn ghost active" href="/users/myposts">My Posts</a>
+            <a class="btn primary" href="/posts/new">New Post</a>
+            <a class="btn primary" href="/videos/new">New Video Post</a>
+            <a class="btn ghost" href="/users/profile">My Profile</a>
+            <% if (role === 'admin') { %>
+              <a class="btn ghost sidebar-link" href="/users">Manage Users</a>
+              <a class="btn ghost sidebar-link" href="/users/posts-management">Manage All Posts</a>
+              <a class="btn ghost sidebar-link" href="/users/comments-management">Manage All Comments</a>
+            <% } %>
+          <% } %>
+        </nav>
+        <% if (user) { %>
+          <div class="logout-button-container">
+            <button class="btn danger" onclick="confirmLogout()">Logout</button>
+          </div>
+        <% } %>
+      </aside>
+      <main class="main-content">
+        <h1 class="section-title">My Posts</h1>
+        <% if (posts && posts.length) { %>
+          <div class="profile-posts-grid">
+            <% posts.forEach(function(post) { %>
+              <div class="profile-post-thumbnail-card">
+                <a href="/posts/<%= post._id %>">
+                  <% if (post.image) { %>
+                    <img src="<%= post.image %>" alt="<%= post.title %>" class="profile-post-thumbnail-image" />
+                  <% } else if (post.videoPath) { %>
+                    <video src="<%= post.videoPath %>" class="profile-post-thumbnail-video"></video>
+                  <% } %>
+                  <div class="profile-post-overlay">
+                    <span class="overlay-icon"><i class="fas fa-heart"></i> <%= (post.likes || []).length %></span>
+                    <span class="overlay-icon"><i class="fas fa-comment"></i> <%= post.commentCount || 0 %></span>
+                  </div>
+                </a>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="card no-posts-message">You haven't created any posts yet. <a href="/posts/new">Create one</a>.</div>
+        <% } %>
+      </main>
+    </div>
+    <script>
+      function confirmLogout() {
+        if (confirm("Are you sure you want to log out?")) {
+          window.location.href = "/auth/logout";
+        }
+      }
+    </script>
+  </body>
+</html>

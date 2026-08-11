@@ -1,0 +1,210 @@
+/* Video Detail Page Styles */
+
+.video-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.back-button-container {
+  margin-bottom: 20px;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #f0f0f0;
+}
+
+.loading-container, .error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.loading-spinner {
+  font-size: 18px;
+  color: #666;
+}
+
+.video-actions {
+  display: flex;
+  gap: 15px;
+  margin: 15px 0;
+  padding: 15px 0;
+  border-bottom: 1px solid #e1e1e1;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.btn-icon:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.1);
+}
+
+.btn-icon.liked {
+  color: #e74c3c;
+}
+
+.btn-icon.disliked {
+  color: #3498db;
+}
+
+.video-stats {
+  margin: 10px 0;
+}
+
+.likes-count {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.likes-count strong {
+  color: #333;
+}
+
+.comment-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.comment-author-link {
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.comment-author-link:hover {
+  text-decoration: underline;
+}
+
+.comment-timestamp {
+  font-size: 12px;
+  color: #666;
+}
+
+.comment-content {
+  color: #333;
+  line-height: 1.4;
+}
+
+.no-comments {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
+}
+
+.add-comment-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e1e1e1;
+}
+
+.comment-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+}
+
+.comment-input:focus {
+  border-color: #007bff;
+}
+
+.comment-input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.post-comment-button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.post-comment-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.post-comment-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.comment-error {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.loading-comments {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .video-detail-container {
+    padding: 10px;
+  }
+
+  .instagram-single-post-view {
+    flex-direction: column;
+  }
+
+  .instagram-single-post-media-container {
+    margin-bottom: 20px;
+  }
+
+  .video-actions {
+    justify-content: center;
+  }
+
+  .add-comment-form {
+    flex-direction: column;
+  }
+
+  .comment-input {
+    border-radius: 8px;
+  }
+
+  .post-comment-button {
+    border-radius: 8px;
+  }
+}
+

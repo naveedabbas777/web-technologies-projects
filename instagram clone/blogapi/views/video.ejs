@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= videoPost.title %> - BlogAPI</title>
+  <link rel="stylesheet" href="/stylesheets/style.css" />
+</head>
+<body>
+  <div class="navbar">
+    <div class="navbar-inner container">
+      <div class="brand"><span class="dot"></span> BlogAPI</div>
+      <div class="nav-links">
+        <% if (!user) { %>
+          <a class="btn primary" href="/auth/login">Login</a>
+          <a class="btn ghost" href="/auth/signup">Signup</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="app-container">
+    <aside class="main-sidebar">
+      <nav>
+        <a class="btn ghost" href="/">Home</a>
+        <a class="btn ghost" href="/videos">Video Feed</a>
+        <% if (user) { %>
+          <a class="btn ghost" href="/users/myposts">My Posts</a>
+          <a class="btn primary" href="/posts/new">New Post</a>
+          <a class="btn primary" href="/videos/new">New Video Post</a>
+          <% if (role === 'admin') { %>
+            <a class="btn ghost" href="/users">Manage Users</a>
+            <a class="btn ghost sidebar-link" href="/users/posts-management">Manage All Posts</a>
+            <a class="btn ghost sidebar-link" href="/users/comments-management">Manage All Comments</a>
+          <% } %>
+        <% } %>
+      </nav>
+      <% if (user) { %>
+        <div class="logout-button-container">
+          <button class="btn danger" onclick="confirmLogout()">Logout</button>
+        </div>
+      <% } %>
+    </aside>
+    <main class="main-content">
+      <div class="instagram-single-post-view"> <!-- New wrapper for single post -->
+        <div class="instagram-single-post-media-container">
+          <% if (videoPost.videoPath) { %>
+            <video controls src="<%= videoPost.videoPath %>" class="instagram-single-post-video"></video>
+          <% } %>
+        </div>
+        <div class="instagram-single-post-details-sidebar">
+          <div class="instagram-single-post-header">
+            <a href="/users/<%= videoPost.author._id %>/profile" class="post-author-link">
+              <img src="<%= videoPost.author.profilePicture || '/images/default-profile.png' %>" alt="<%= videoPost.author.username %>" class="post-author-picture" />
+              <span class="post-author-username">@<%= videoPost.author ? videoPost.author.username : 'Unknown' %></span>
+            </a>
+            <button class="post-options-button"><i class="fas fa-ellipsis-h"></i></button>
+          </div>
+          <div class="instagram-post-comments-section">
+            <div class="scrollable-comments">
+              <div class="post-caption-full">
+                <span class="caption-author">@<%= videoPost.author ? videoPost.author.username : 'Unknown' %></span>
+                <%= videoPost.description %>
+              </div>
+              <% if (comments && comments.length) { %>
+                <% comments.forEach(function(comment) { %>
+                  <div class="instagram-comment-item">
+                    <a href="/users/<%= comment.author._id %>/profile" class="comment-author-link">
+                      <img src="<%= comment.author.profilePicture || '/images/default-profile.png' %>" alt="<%= comment.author.username %>" class="comment-author-picture" />
+                      <span class="comment-author-username">@<%= comment.author ? comment.author.username : 'Unknown' %></span>
+                    </a>
+                    <span class="comment-content"><%= comment.content %></span>
+                    <span class="comment-timestamp"><%= new Date(comment.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                    <% if (user && comment.author && comment.author._id.toString() === user.toString()) { %>
+                      <form action="/comments/<%= comment._id %>/delete" method="POST" style="display:inline;">
+                        <button type="submit" class="btn-icon delete-comment-button"><i class="fas fa-times"></i></button>
+                      </form>
+                    <% } %>
+                  </div>
+                <% }) %>
+              <% } else { %>
+                <div class="no-comments-message">No comments yet.</div>
+              <% } %>
+            </div>
+            <div class="instagram-single-post-actions-and-add-comment">
+              <div class="instagram-post-actions">
+                <% if (user) { %>
+                  <form class="like-form" action="/videos/<%= videoPost._id %>/like" method="POST" style="display:inline;">
+                    <button type="submit" class="btn-icon <%= (videoPost.likes || []).some(like => like.equals(user)) ? 'liked' : '' %>">
+                      <i class="fas fa-heart"></i>
+                    </button>
+                  </form>
+                <% } else { %>
+                  <span class="btn-icon"><i class="fas fa-heart"></i></span>
+                <% } %>
+                <a href="/videos/<%= videoPost._id %>" class="btn-icon comment-button">
+                  <i class="fas fa-comment"></i>
+                </a>
+                <button class="btn-icon share-button"><i class="fas fa-paper-plane"></i></button>
+              </div>
+              <p class="likes-count"><strong><%= (videoPost.likes || []).length %> likes</strong></p>
+              <p class="post-timestamp"><%= new Date(videoPost.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+              <% if (user) { %>
+                <div id="commentForm" class="add-comment-form">
+                  <form action="/comments/video/<%= videoPost._id %>" method="POST">
+                    <input type="text" class="comment-input" name="content" placeholder="Add a comment...">
+                    <button class="btn primary post-comment-button" type="submit">Post</button>
+                  </form>
+                </div>
+              <% } else { %>
+                <div class="add-comment-message">Please <a href="/auth/login">login</a> to add a comment.</div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    function confirmLogout() {
+      if (confirm("Are you sure you want to log out?")) {
+        window.location.href = "/auth/logout";
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.like-form, .dislike-form').forEach(form => {
+        form.addEventListener('submit', async function(event) {
+          event.preventDefault();
+
+          const form = event.target;
+          const action = form.action;
+          const method = form.method;
+
+          try {
+            const response = await fetch(action, {
+              method: method,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              },
+              body: JSON.stringify({}) // Send empty body for like/dislike
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              const likeCountSpan = form.querySelector('.like-count');
+              const dislikeCountSpan = form.querySelector('.dislike-count');
+              const likeButton = form.closest('.post-stats').querySelector('.like-form .btn-icon');
+              const dislikeButton = form.closest('.post-stats').querySelector('.dislike-form .btn-icon');
+
+              if (likeCountSpan && dislikeCountSpan && likeButton && dislikeButton) {
+                likeCountSpan.textContent = result.likes;
+                dislikeCountSpan.textContent = result.dislikes;
+
+                if (result.success) {
+                  if (action.includes('/like')) {
+                    likeButton.classList.toggle('liked');
+                    dislikeButton.classList.remove('disliked');
+                  } else if (action.includes('/dislike')) {
+                    dislikeButton.classList.toggle('disliked');
+                    likeButton.classList.remove('liked');
+                  }
+                }
+              }
+            } else {
+              console.error('Failed to update like/dislike status.');
+              alert('Failed to update like/dislike status.');
+            }
+          } catch (error) {
+            console.error('Error during like/dislike operation:', error);
+            alert('An error occurred.');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
